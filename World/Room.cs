@@ -20,58 +20,58 @@ namespace ProjectVK
 
             Tiles = new TileMap(tileMap);
             // Left Wall
-            Tiles.InsertTile(0, 0, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 2, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 1, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 3, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 4, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 5, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 6, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 7, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 8, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 9, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 10, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 11, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(0, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 0, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 2, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 1, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 3, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 4, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 5, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 6, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 7, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 8, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 9, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 10, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 11, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 12, 1.0f, 1.0f, Textures.Items[0]);
 
             // Right Wall
-            Tiles.InsertTile(22, 2, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 1, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 0, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 3, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 4, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 5, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 6, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 7, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 8, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 9, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 10, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 11, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 2, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 1, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 0, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 3, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 4, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 5, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 6, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 7, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 8, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 9, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 10, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 11, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 12, 1.0f, 1.0f, Textures.Items[0]);
 
             // Floor
-            Tiles.InsertTile(1, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(2, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(3, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(4, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(5, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(6, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(7, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(8, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(9, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(10, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(11, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(12, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(13, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(14, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(15, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(16, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(17, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(18, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(19, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(20, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(21, 12, 0.0f, 0.0f, Textures.Items[0]);
-            Tiles.InsertTile(22, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(1, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(2, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(3, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(4, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(5, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(6, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(7, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(8, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(9, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(10, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(11, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(12, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(13, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(14, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(15, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(16, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(17, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(18, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(19, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(20, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(21, 12, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 12, 1.0f, 1.0f, Textures.Items[0]);
 
             // Ramp tests 1
             Tiles.InsertTile(2, 11, 0.0f, 0.5f, Textures.Items[3]);
@@ -79,9 +79,8 @@ namespace ProjectVK
 
             Tiles.InsertTile(4, 11, 0.0f, 0.5f, Textures.Items[3]);
             Tiles.InsertTile(5, 11, 0.5f, 1.0f, Textures.Items[4]);
-            //Tiles.InsertTile(5, 11, 0.0f, 1.0f, Textures.Items[1]);
             Tiles.InsertTile(6, 10, 0.0f, 1.0f, Textures.Items[1]);
-
+            Tiles.InsertTile(7, 10, 1.0f, 1.0f, Textures.Items[0]);
             Tiles.InsertTile(8, 10, 1.0f, 0.0f, Textures.Items[2]);
             Tiles.InsertTile(9, 11, 1.0f, 0.5f, Textures.Items[6]);
             Tiles.InsertTile(10, 11, 0.5f, 0.0f, Textures.Items[5]);
@@ -90,7 +89,7 @@ namespace ProjectVK
             Tiles.InsertTile(14, 11, 0.0f, 1.0f, Textures.Items[1]);
             Tiles.InsertTile(15, 10, 0.0f, 0.5f, Textures.Items[3]);
             Tiles.InsertTile(16, 10, 0.5f, 1.0f, Textures.Items[4]);
-            Tiles.InsertTile(17, 9, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(17, 9, 1.0f, 1.0f, Textures.Items[0]);
             Tiles.InsertTile(18, 10, 1.0f, 0.5f, Textures.Items[6]);
             Tiles.InsertTile(19, 10, 0.5f, 0.0f, Textures.Items[5]);
             Tiles.InsertTile(20, 11, 1.0f, 0.0f, Textures.Items[2]);

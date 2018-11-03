@@ -163,7 +163,6 @@ namespace ProjectVK
             ColBotRight = Tiles.Map[BotRight.Y, BotRight.X];
             ColBotMid = Tiles.Map[BotMid.Y, BotMid.X];
             ColBotLeft = Tiles.Map[BotLeft.Y, BotLeft.X];
-            //if (ColBotLeft == null) Console.WriteLine(BotLeft.Y + ", " + BotLeft.X);
             ColLoLeft = Tiles.Map[LoLeft.Y, LoLeft.X];
             ColMidLeft = Tiles.Map[MidLeft.Y, MidLeft.X];
         }
@@ -226,7 +225,7 @@ namespace ProjectVK
             {
                 if (groundTile != null)
                 {
-                    groundPos = new Vector2(Position.X + RunVelocity.X, Position.Y - (Bounds.Bottom - groundTile.GetYIntersection((Bounds.Center.X))));
+                    groundPos = new Vector2(Position.X + RunVelocity.X, Position.Y - (Bounds.Bottom - groundTile.GetYIntersection(Bounds.Center.X)));
                 }
                 else
                 {

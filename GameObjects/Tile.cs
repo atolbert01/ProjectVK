@@ -84,17 +84,9 @@ namespace ProjectVK
             Sprite = sprite;
             Position = new Vector2((Column * Constants.TILE_SIZE), (Row * Constants.TILE_SIZE));
             Bounds = new Rectangle((int)Position.X, (int)Position.Y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+            StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
+            EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
 
-            if (startMultiplier == endMultiplier)
-            {
-                StartPoint = new Vector2(Bounds.Left, Bounds.Top + (Constants.TILE_SIZE * startMultiplier));
-                EndPoint = new Vector2(Bounds.Right, Bounds.Top + (Constants.TILE_SIZE * endMultiplier));
-            }
-            else
-            {
-                StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
-                EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
-            }
         }
 
         public float GetYIntersection(float xPos)

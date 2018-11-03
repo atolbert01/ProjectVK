@@ -43,7 +43,7 @@ namespace ProjectVK
         private Point LoLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Bottom - (Bounds.Height * 0.1)), (int)(Bounds.Left - (RunVelocity.X) + 1)); } }
         private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right + RunVelocity.X)); } }
         private Point LoRight { get { return Tiles.GetClampedPoint((int)(Bounds.Bottom - (Bounds.Height * 0.1)), (int)(Bounds.Right + RunVelocity.X)); } }
-        private Point BotLeft { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Left); } }
+        private Point BotLeft { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Left + 1); } }
         private Point BotMid { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Center.X); } }
         private Point BotRight { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Right); } }
         private Tile ColLoLeft { get; set; }
@@ -176,12 +176,18 @@ namespace ProjectVK
             {
                 IsGrounded = false;
             }
-            else if(ColBotMid != null)
+            else if (ColBotMid != null && ColBotMid.TopDepth == 0)
             {
-                if (ColBotMid.TopDepth == 0)
-                {
-                    IsGrounded = true;
-                }
+                IsGrounded = true;
+            }
+            else if (ColBotLeft != null && ColBotLeft.TopDepth == 0)
+            {
+                
+                IsGrounded = true;
+            }
+            else if (ColBotRight != null && ColBotRight.TopDepth == 0)
+            {
+                IsGrounded = true;
             }
 
             if (!IsGrounded)
@@ -302,6 +308,29 @@ namespace ProjectVK
                         if (ColBotLeft.EndPoint.Y < Bounds.Bottom)
                         {
                             return ColBotLeft;
+                        }
+                    }
+                }
+
+
+                if (ColLoLeft != null)
+                {
+                    if (ColLoLeft.TopDepth == 0)
+                    {
+                        if (ColLoLeft.EndPoint.Y >= Bounds.Bottom)
+                        {
+                            return ColLoLeft;
+                        }
+                    }
+                }
+
+                if (ColBotRight != null)
+                {
+                    if (ColBotRight.TopDepth == 0)
+                    {
+                        if (ColBotRight.StartPoint.Y == Bounds.Bottom)
+                        {
+                            return ColBotRight;
                         }
                     }
                 }

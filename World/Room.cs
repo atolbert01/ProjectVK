@@ -74,17 +74,19 @@ namespace ProjectVK
             Tiles.InsertTile(22, 12, 1.0f, 1.0f, Textures.Items[0]);
 
             // Ramp tests 1
-            Tiles.InsertTile(2, 11, 0.0f, 0.5f, Textures.Items[3]);
-            Tiles.InsertTile(3, 11, 0.0f, 1.0f, Textures.Items[1]);
+            //Tiles.InsertTile(2, 11, 0.0f, 0.5f, Textures.Items[3]);
+            //Tiles.InsertTile(3, 11, 0.0f, 1.0f, Textures.Items[1]);
 
             Tiles.InsertTile(4, 11, 0.0f, 0.5f, Textures.Items[3]);
             Tiles.InsertTile(5, 11, 0.5f, 1.0f, Textures.Items[4]);
             Tiles.InsertTile(6, 10, 0.0f, 1.0f, Textures.Items[1]);
             Tiles.InsertTile(7, 10, 1.0f, 1.0f, Textures.Items[0]);
             Tiles.InsertTile(8, 10, 1.0f, 0.0f, Textures.Items[2]);
-            Tiles.InsertTile(9, 11, 1.0f, 0.5f, Textures.Items[6]);
-            Tiles.InsertTile(10, 11, 0.5f, 0.0f, Textures.Items[5]);
+            //Tiles.InsertTile(9, 11, 1.0f, 0.5f, Textures.Items[6]);
+            //Tiles.InsertTile(10, 11, 0.5f, 0.0f, Textures.Items[5]);
 
+            Tiles.InsertTile(9, 11, 1.0f, 0.0f, Textures.Items[2]);
+            Tiles.InsertTile(10, 11, 0.0f, 1.0f, Textures.Items[1]);
             // Ramp tests 2
             Tiles.InsertTile(14, 11, 0.0f, 1.0f, Textures.Items[1]);
             Tiles.InsertTile(15, 10, 0.0f, 0.5f, Textures.Items[3]);

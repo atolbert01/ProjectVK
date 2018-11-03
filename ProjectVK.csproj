@@ -58,6 +58,7 @@
     <Compile Include="SpineXna\XnaTextureLoader.cs" />
     <Compile Include="World\Level.cs" />
     <Compile Include="World\Room.cs" />
+    <Compile Include="World\TileMap.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

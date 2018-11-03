@@ -1,126 +1,102 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Spine;
-using System;
 
 namespace ProjectVK
 {
     class Room
     {
-        public ArrayList<Tile> Tiles { get; set; }
+        //public ArrayList<Tile> Tiles { get; set; }
         public ArrayList<Texture2D> Textures { get; set; }
-        public Tile[,] TileMap { get; set; }
+        //public Tile[,] TileMap { get; set; }
+        public TileMap Tiles { get; set; }
         public ArrayList<Character> Characters { get; set; }
         public Player Player { get; set; }
         public Room(GraphicsDevice graphicsDevice, string assetsFolder, ArrayList<Texture2D> textures, Tile[ , ] tileMap)
         {
             Textures = textures;
-            TileMap = tileMap;
+            //TileMap = tileMap;
             Characters = new ArrayList<Character>();
 
+            Tiles = new TileMap(tileMap);
+            // Left Wall
+            Tiles.InsertTile(0, 0, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 2, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 1, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 3, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 4, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 5, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 6, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 7, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 8, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 9, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 10, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 11, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(0, 12, 0.0f, 0.0f, Textures.Items[0]);
 
-            TileMap[0, 0] = new Tile(TILE_TYPE.BLOCK, 0, 0, Textures.Items[0]);
-            TileMap[1, 0] = new Tile(TILE_TYPE.BLOCK, 1, 0, Textures.Items[0]);
-            TileMap[2, 0] = new Tile(TILE_TYPE.BLOCK, 2, 0, Textures.Items[0]);
-            TileMap[3, 0] = new Tile(TILE_TYPE.BLOCK, 3, 0, Textures.Items[0]);
-            TileMap[4, 0] = new Tile(TILE_TYPE.BLOCK, 4, 0, Textures.Items[0]);
-            TileMap[5, 0] = new Tile(TILE_TYPE.BLOCK, 5, 0, Textures.Items[0]);
-            TileMap[6, 0] = new Tile(TILE_TYPE.BLOCK, 6, 0, Textures.Items[0]);
-            TileMap[7, 0] = new Tile(TILE_TYPE.BLOCK, 7, 0, Textures.Items[0]);
-            TileMap[8, 0] = new Tile(TILE_TYPE.BLOCK, 8, 0, Textures.Items[0]);
-            TileMap[9, 0] = new Tile(TILE_TYPE.BLOCK, 9, 0, Textures.Items[0]);
-            TileMap[10, 0] = new Tile(TILE_TYPE.BLOCK, 10, 0, Textures.Items[0]);
-            TileMap[11, 0] = new Tile(TILE_TYPE.BLOCK, 11, 0, Textures.Items[0]);
-            TileMap[12, 0] = new Tile(TILE_TYPE.BLOCK, 12, 0, Textures.Items[0]);
+            // Right Wall
+            Tiles.InsertTile(22, 2, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 1, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 0, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 3, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 4, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 5, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 6, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 7, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 8, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 9, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 10, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 11, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 12, 0.0f, 0.0f, Textures.Items[0]);
 
-            TileMap[0, 4] = new Tile(TILE_TYPE.BLOCK, 0, 4, Textures.Items[0]);
-            TileMap[1, 4] = new Tile(TILE_TYPE.BLOCK, 1, 4, Textures.Items[0]);
-            TileMap[2, 4] = new Tile(TILE_TYPE.BLOCK, 2, 4, Textures.Items[0]);
-            TileMap[3, 4] = new Tile(TILE_TYPE.BLOCK, 3, 4, Textures.Items[0]);
-            TileMap[4, 4] = new Tile(TILE_TYPE.BLOCK, 4, 4, Textures.Items[0]);
-            TileMap[5, 4] = new Tile(TILE_TYPE.BLOCK, 5, 4, Textures.Items[0]);
-            TileMap[6, 4] = new Tile(TILE_TYPE.BLOCK, 6, 4, Textures.Items[0]);
+            // Floor
+            Tiles.InsertTile(1, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(2, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(3, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(4, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(5, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(6, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(7, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(8, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(9, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(10, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(11, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(12, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(13, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(14, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(15, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(16, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(17, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(18, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(19, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(20, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(21, 12, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(22, 12, 0.0f, 0.0f, Textures.Items[0]);
 
-            TileMap[12, 1] = new Tile(TILE_TYPE.BLOCK, 12, 1, Textures.Items[0]);
-            TileMap[12, 2] = new Tile(TILE_TYPE.BLOCK, 12, 2, Textures.Items[0]);
-            TileMap[12, 3] = new Tile(TILE_TYPE.BLOCK, 12, 3, Textures.Items[0]);
-            TileMap[12, 4] = new Tile(TILE_TYPE.BLOCK, 12, 4, Textures.Items[0]);
-            TileMap[12, 5] = new Tile(TILE_TYPE.BLOCK, 12, 5, Textures.Items[0]);
-            TileMap[12, 6] = new Tile(TILE_TYPE.BLOCK, 12, 6, Textures.Items[0]);
-            TileMap[12, 7] = new Tile(TILE_TYPE.BLOCK, 12, 7, Textures.Items[0]);
-            TileMap[12, 8] = new Tile(TILE_TYPE.BLOCK, 12, 8, Textures.Items[0]);
-            TileMap[12, 9] = new Tile(TILE_TYPE.BLOCK, 12, 9, Textures.Items[0]);
-            TileMap[12, 10] = new Tile(TILE_TYPE.BLOCK, 12, 10, Textures.Items[0]);
-            TileMap[12, 11] = new Tile(TILE_TYPE.BLOCK, 12, 11, Textures.Items[0]);
-            TileMap[12, 12] = new Tile(TILE_TYPE.BLOCK, 12, 12, Textures.Items[0]);
-            TileMap[12, 13] = new Tile(TILE_TYPE.BLOCK, 12, 13, Textures.Items[0]);
-            TileMap[12, 14] = new Tile(TILE_TYPE.BLOCK, 12, 14, Textures.Items[0]);
-            TileMap[12, 15] = new Tile(TILE_TYPE.BLOCK, 12, 15, Textures.Items[0]);
-            TileMap[12, 16] = new Tile(TILE_TYPE.BLOCK, 12, 16, Textures.Items[0]);
-            TileMap[12, 17] = new Tile(TILE_TYPE.BLOCK, 12, 17, Textures.Items[0]);
-            TileMap[12, 18] = new Tile(TILE_TYPE.BLOCK, 12, 18, Textures.Items[0]);
-            TileMap[12, 19] = new Tile(TILE_TYPE.BLOCK, 12, 19, Textures.Items[0]);
-            TileMap[12, 20] = new Tile(TILE_TYPE.BLOCK, 12, 20, Textures.Items[0]);
-            TileMap[12, 21] = new Tile(TILE_TYPE.BLOCK, 12, 21, Textures.Items[0]);
-            TileMap[12, 22] = new Tile(TILE_TYPE.BLOCK, 12, 22, Textures.Items[0]);
+            // Ramp tests 1
+            Tiles.InsertTile(2, 11, 0.0f, 0.5f, Textures.Items[3]);
+            Tiles.InsertTile(3, 11, 0.0f, 1.0f, Textures.Items[1]);
 
+            Tiles.InsertTile(4, 11, 0.0f, 0.5f, Textures.Items[3]);
+            Tiles.InsertTile(5, 11, 0.5f, 1.0f, Textures.Items[4]);
+            //Tiles.InsertTile(5, 11, 0.0f, 1.0f, Textures.Items[1]);
+            Tiles.InsertTile(6, 10, 0.0f, 1.0f, Textures.Items[1]);
 
-            TileMap[11, 3] = new Tile(TILE_TYPE.R_RAMP, 11, 3, 0.5f, 1.0f, Textures.Items[4]);
-            TileMap[11, 4] = new Tile(TILE_TYPE.R_RAMP, 11, 4, 0.0f, 0.5f, Textures.Items[3]);
+            Tiles.InsertTile(8, 10, 1.0f, 0.0f, Textures.Items[2]);
+            Tiles.InsertTile(9, 11, 1.0f, 0.5f, Textures.Items[6]);
+            Tiles.InsertTile(10, 11, 0.5f, 0.0f, Textures.Items[5]);
 
-            //TileMap[11, 3] = new Tile(TILE_TYPE.R_RAMP, 11, 3, 0.0f, 0.5f, Textures.Items[3]);
-            //TileMap[11, 4] = new Tile(TILE_TYPE.R_RAMP, 11, 4, 0.5f, 1.0f, Textures.Items[4]);
+            // Ramp tests 2
+            Tiles.InsertTile(14, 11, 0.0f, 1.0f, Textures.Items[1]);
+            Tiles.InsertTile(15, 10, 0.0f, 0.5f, Textures.Items[3]);
+            Tiles.InsertTile(16, 10, 0.5f, 1.0f, Textures.Items[4]);
+            Tiles.InsertTile(17, 9, 0.0f, 0.0f, Textures.Items[0]);
+            Tiles.InsertTile(18, 10, 1.0f, 0.5f, Textures.Items[6]);
+            Tiles.InsertTile(19, 10, 0.5f, 0.0f, Textures.Items[5]);
+            Tiles.InsertTile(20, 11, 1.0f, 0.0f, Textures.Items[2]);
 
-            TileMap[11, 6] = new Tile(TILE_TYPE.BLOCK, 11, 6, Textures.Items[0]);
-
-            // Air ramp test
-            TileMap[7, 7] = new Tile(TILE_TYPE.BLOCK, 7, 7, Textures.Items[0]);
-            TileMap[6, 8] = new Tile(TILE_TYPE.BLOCK, 6, 8, Textures.Items[0]);
-            TileMap[6, 9] = new Tile(TILE_TYPE.BLOCK, 6, 9, Textures.Items[0]);
-            TileMap[6, 10] = new Tile(TILE_TYPE.BLOCK, 6, 10, Textures.Items[0]);
-            TileMap[5, 11] = new Tile(TILE_TYPE.R_RAMP, 5, 11, Textures.Items[1]);
-            TileMap[4, 12] = new Tile(TILE_TYPE.R_RAMP, 4, 12, 0.0f, 0.5f, Textures.Items[3]);
-            TileMap[4, 13] = new Tile(TILE_TYPE.R_RAMP, 4, 13, 0.5f, 1.0f, Textures.Items[4]);
-            TileMap[3, 14] = new Tile(TILE_TYPE.R_RAMP, 3, 14, 0.0f, 0.5f, Textures.Items[3]);
-            TileMap[3, 15] = new Tile(TILE_TYPE.R_RAMP, 3, 15, 0.5f, 1.0f, Textures.Items[4]);
-
-
-            TileMap[11, 8] = new Tile(TILE_TYPE.L_RAMP, 11, 8, Textures.Items[2]);
-            TileMap[11, 9] = new Tile(TILE_TYPE.R_RAMP, 11, 9, Textures.Items[1]);
-            TileMap[11, 10] = new Tile(TILE_TYPE.BLOCK, 11, 10, Textures.Items[0]);
-            TileMap[11, 11] = new Tile(TILE_TYPE.BLOCK, 11, 11, Textures.Items[0]);
-            TileMap[11, 12] = new Tile(TILE_TYPE.BLOCK, 11, 12, Textures.Items[0]);
-            TileMap[11, 13] = new Tile(TILE_TYPE.BLOCK, 11, 13, Textures.Items[0]);
-            TileMap[11, 14] = new Tile(TILE_TYPE.L_RAMP, 11, 14, Textures.Items[2]);
-            TileMap[11, 15] = new Tile(TILE_TYPE.R_RAMP, 11, 15, Textures.Items[1]);
-
-            //TileMap[10, 16] = new Tile(TILE_TYPE.BLOCK, 10, 16, Textures.Items[0]);
-            TileMap[10, 17] = new Tile(TILE_TYPE.L_RAMP, 10, 17, 1.0f, 0.5f, Textures.Items[6]);
-            TileMap[10, 18] = new Tile(TILE_TYPE.L_RAMP, 10, 18, 0.5f, 0.0f, Textures.Items[5]);
-            TileMap[11, 16] = new Tile(TILE_TYPE.BLOCK, 11, 16, Textures.Items[0]);
-            TileMap[11, 17] = new Tile(TILE_TYPE.BLOCK, 11, 17, Textures.Items[0]);
-
-            TileMap[11, 18] = new Tile(TILE_TYPE.BLOCK, 11, 18, Textures.Items[0]);
-            TileMap[11, 19] = new Tile(TILE_TYPE.L_RAMP, 11, 19, Textures.Items[2]);
-
-            TileMap[11, 21] = new Tile(TILE_TYPE.L_RAMP, 11, 21, 1.0f, 0.5f, Textures.Items[6]);
-            TileMap[11, 20] = new Tile(TILE_TYPE.R_RAMP, 11, 20, 0.5f, 1.0f, Textures.Items[4]);
-            //TileMap[11, 20] = new Tile(TILE_TYPE.L_RAMP, 11, 20, 0.5f, 0.0f, Textures.Items[5]);
-
-            TileMap[10, 10] = new Tile(TILE_TYPE.R_RAMP, 10, 10, Textures.Items[1]);
-            TileMap[10, 11] = new Tile(TILE_TYPE.BLOCK, 10, 11, Textures.Items[0]);
-            TileMap[10, 12] = new Tile(TILE_TYPE.L_RAMP, 10, 12, Textures.Items[2]);
-
-            Player = new Player(graphicsDevice, assetsFolder, new Vector2(420, 400), 12.0f, this);
+            Player = new Player(graphicsDevice, assetsFolder, new Vector2(400, 400), 8.0f, this);
             Characters.Add(Player);
-        }
-
-        public Point GetRoomClampedPoint(int y, int x)
-        {
-            int row = MathHelper.Clamp((int)Math.Ceiling(((float)x / Constants.TILE_SIZE) - 1), 0, TileMap.GetLength(1) - 1);
-            int column = MathHelper.Clamp((int)Math.Ceiling(((float)y / Constants.TILE_SIZE) - 1), 0, TileMap.GetLength(0) - 1);
-
-            return new Point(row, column);
         }
 
         public void Update(GameTime gameTime)
@@ -140,18 +116,9 @@ namespace ProjectVK
 
         public void DrawObjects(SpriteBatch spriteBatch)
         {
-            //Player.DrawBounds(spriteBatch, Textures.Items[0]);
+            Player.DrawBounds(spriteBatch, Textures.Items[0]);
 
-            for (int row = 0; row < TileMap.GetLength(0); row++)
-            {
-                for(int column = 0; column < TileMap.GetLength(1); column++)
-                {
-                    if (TileMap[row, column] != null)
-                    {
-                        TileMap[row, column].Draw(spriteBatch);
-                    }
-                }
-            }
+            Tiles.Draw(spriteBatch);
         }
     }
 }

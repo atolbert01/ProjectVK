@@ -20,6 +20,10 @@ namespace ProjectVK
         public int Row { get; set; }
         public int Column { get; set; }
         public TILE_TYPE TileType { get; set; }
+        public int TopDepth { get; set; }
+        public int BottomDepth { get; set; }
+
+        public Tile(){ }
 
         public Tile(TILE_TYPE tileType, int row, int column, Texture2D sprite)
         {
@@ -67,6 +71,30 @@ namespace ProjectVK
 
             StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
             EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
+        }
+
+        /// <summary>
+        /// This constructor to be utilized when creating/initializing Tiles indirectly with call to TileMap.InsertTile(). This is the preferred way to create Tiles.
+        /// The start and end multipliers are float values from 0 to 1. This value is multiplied by Bounds.Top to determine start and end ramp heights.
+        /// </summary>
+        public Tile(int row, int column, float startMultiplier, float endMultiplier, Texture2D sprite)
+        {
+            Row = row;
+            Column = column;
+            Sprite = sprite;
+            Position = new Vector2((Column * Constants.TILE_SIZE), (Row * Constants.TILE_SIZE));
+            Bounds = new Rectangle((int)Position.X, (int)Position.Y, Constants.TILE_SIZE, Constants.TILE_SIZE);
+
+            if (startMultiplier == endMultiplier)
+            {
+                StartPoint = new Vector2(Bounds.Left, Bounds.Top + (Constants.TILE_SIZE * startMultiplier));
+                EndPoint = new Vector2(Bounds.Right, Bounds.Top + (Constants.TILE_SIZE * endMultiplier));
+            }
+            else
+            {
+                StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
+                EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
+            }
         }
 
         public float GetYIntersection(float xPos)

@@ -76,6 +76,7 @@ namespace ProjectVK
             // Ramp tests 1
             //Tiles.InsertTile(2, 11, 0.0f, 0.5f, Textures.Items[3]);
             //Tiles.InsertTile(3, 11, 0.0f, 1.0f, Textures.Items[1]);
+            Tiles.InsertTile(3, 11, 1.0f, 0.0f, Textures.Items[2]);
 
             Tiles.InsertTile(4, 11, 0.0f, 0.5f, Textures.Items[3]);
             Tiles.InsertTile(5, 11, 0.5f, 1.0f, Textures.Items[4]);
@@ -96,7 +97,7 @@ namespace ProjectVK
             Tiles.InsertTile(19, 10, 0.5f, 0.0f, Textures.Items[5]);
             Tiles.InsertTile(20, 11, 1.0f, 0.0f, Textures.Items[2]);
 
-            Player = new Player(graphicsDevice, assetsFolder, new Vector2(400, 400), 8.0f, this);
+            Player = new Player(graphicsDevice, assetsFolder, new Vector2(800, 400), 12.0f, this);
             Characters.Add(Player);
         }
 
@@ -117,7 +118,7 @@ namespace ProjectVK
 
         public void DrawObjects(SpriteBatch spriteBatch)
         {
-            Player.DrawBounds(spriteBatch, Textures.Items[0]);
+            //Player.DrawBounds(spriteBatch, Textures.Items[0]);
 
             Tiles.Draw(spriteBatch);
         }

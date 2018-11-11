@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Spine;
-using System;
 
 namespace ProjectVK
 {
@@ -17,7 +16,7 @@ namespace ProjectVK
     class Player : Character
     {
         public PLAYER_STATE PlayerState { get; set; }
-        public Rectangle Bounds { get { return new Rectangle((int)(Position.X) - 55, (int)(Position.Y) - yOffset, 110, 286); } }
+        public Rectangle Bounds { get { return new Rectangle((int)(Position.X) - 55, (int)(Position.Y) - yOffset, 110, 288); } }
         public bool IsGrounded { get; set; }
         public bool IsBlockedLeft { get; set; }
         public bool IsBlockedRight { get; set; }
@@ -29,34 +28,17 @@ namespace ProjectVK
         private int TileSize { get; set; }
         private Vector2 PrevPos { get; set; }
         private Vector2 RunVelocity = new Vector2(12, 0);
-
-        private Vector2 JumpStart { get; set; }
-        private readonly int jumpMaxHeight = 256;
-        private Vector2 jumpVelocity = new Vector2(0, 8);
-        private float jumpMultiplier = 0.0f;
-
-        private int hDir, vDir = 0;
         private KeyboardState CurrentKeyState { get; set; }
         private KeyboardState PrevKeyState { get; set; }
-        private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top - (int)jumpVelocity.Y, (int)(Bounds.Center.X)); } }
-        private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left - (RunVelocity.X) + 1)); } }
-        private Point LoLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Bottom - (Bounds.Height * 0.1)), (int)(Bounds.Left - (RunVelocity.X) + 1)); } }
-        private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right + RunVelocity.X)); } }
-        private Point LoRight { get { return Tiles.GetClampedPoint((int)(Bounds.Bottom - (Bounds.Height * 0.1)), (int)(Bounds.Right + RunVelocity.X)); } }
-        private Point BotLeft { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Left + 1); } }
-        private Point BotMid { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Center.X); } }
-        private Point BotRight { get { return Tiles.GetClampedPoint(Bounds.Bottom + (int)gravity, Bounds.Right); } }
-        private Tile ColLoLeft { get; set; }
-        private Tile ColMidLeft { get; set; }
-        private Tile ColLoRight { get; set; }
-        private Tile ColMidRight { get; set; }
-        private Tile ColBotLeft { get; set; }
-        private Tile ColBotRight { get; set; }
-        private Tile ColBotMid { get; set; }
-        private Tile ColTopMid { get; set; }
-        private float distToGround = 0.0f;
-        private int distToWall = 0;
-
+        private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top, (int)(Bounds.Center.X)); } }
+        private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
+        private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
+        private Point LoRight { get { return new Point((int)(Bounds.Right + RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        private Point LoLeft { get { return new Point((int)(Bounds.Left - RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        private Point BotLeft { get { return new Point(Bounds.Left - 1, Bounds.Bottom + 1); } }
+        private Point BotMid { get { return new Point(Bounds.Center.X, Bounds.Bottom + 1); } }
+        private Point BotRight { get { return new Point(Bounds.Right + 1, Bounds.Bottom + 1); } }
+        private Vector2 groundPos { get; set; }
         public Player(GraphicsDevice graphicsDevice, string assetsFolder, Vector2 startPos, float gravity, Room currentRoom) : base(startPos)
         {
             Load(new Atlas(assetsFolder + "clove.atlas", new XnaTextureLoader(graphicsDevice)), assetsFolder + "clove");
@@ -90,23 +72,11 @@ namespace ProjectVK
         public void Update(GameTime gameTime)
         {
 
-            HandleInput(); // Here, we will get the input and make a determination about what player state we should be in.
-            ResolveCollisions(); // Based on our anticipated player state, different types of motion will be authorized. Before applying motion, we need to ensure that the player can move.
-            ApplyStateBehavior(); // Now we know what state the player is in. Apply the correct behavior.
+            HandleInput(); 
+            ApplyGravity();
+            ApplyStateBehavior();
 
             AnimState.Apply(Skeleton);
-            if (PrevPos != null)
-            {
-                if (Position.X - PrevPos.X < 0)
-                    hDir = -1;
-                else if (Position.X - PrevPos.X > 0)
-                    hDir = 1;
-
-                if (Position.Y - PrevPos.Y < 0)
-                    vDir = -1;
-                else
-                    vDir = 1;
-            }
             PrevPos = Position;
 
         }
@@ -143,56 +113,30 @@ namespace ProjectVK
 
             if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
             {
-                JumpStart = new Vector2(Bounds.Center.X, Bounds.Bottom);
                 PlayerState = PLAYER_STATE.JUMP;
             }
 
             PrevKeyState = CurrentKeyState;
         }
-        public void ResolveCollisions()
+        public void ApplyGravity()
         {
-            AssignCollisionZones();
-            //ResolveHorizontalCollisions();
-            ResolveVerticalCollisions();
-        }
-        void AssignCollisionZones()
-        {
-            ColTopMid = Tiles.Map[TopMid.Y, TopMid.X];
-            ColMidRight = Tiles.Map[MidRight.Y, MidRight.X];
-            ColLoRight = Tiles.Map[LoRight.Y, LoRight.X];
-            ColBotRight = Tiles.Map[BotRight.Y, BotRight.X];
-            ColBotMid = Tiles.Map[BotMid.Y, BotMid.X];
-            ColBotLeft = Tiles.Map[BotLeft.Y, BotLeft.X];
-            ColLoLeft = Tiles.Map[LoLeft.Y, LoLeft.X];
-            ColMidLeft = Tiles.Map[MidLeft.Y, MidLeft.X];
-        }
-        
-        void ResolveHorizontalCollisions()
-        {
-        }
-        void ResolveVerticalCollisions()
-        {
-            if (ColBotLeft == null && ColBotRight == null)
+            groundPos = GroundPos();
+            if (groundPos == Vector2.Zero)
             {
-                IsGrounded = false;
+                Position = new Vector2(Position.X, Position.Y + gravity);
             }
-            else if (ColBotMid != null && ColBotMid.TopDepth == 0)
+            else
             {
-                IsGrounded = true;
-            }
-            else if (ColBotLeft != null && ColBotLeft.TopDepth == 0)
-            {
-                
-                IsGrounded = true;
-            }
-            else if (ColBotRight != null && ColBotRight.TopDepth == 0)
-            {
-                IsGrounded = true;
-            }
-
-            if (!IsGrounded)
-            {
-                Position += new Vector2(0, gravity);
+                float distToGround = groundPos.Y - Bounds.Bottom;
+                // The Bounds.Center.Y check prevents finding the groundPos.Y above the player which causes gravity to be applied incorrectly.
+                if (Bounds.Center.Y <= groundPos.Y && distToGround < gravity)
+                {
+                    Position = new Vector2(Position.X, Position.Y + distToGround);
+                }
+                else
+                {
+                    Position = new Vector2(Position.X, Position.Y + gravity);
+                }
             }
         }
         public void ApplyStateBehavior()
@@ -202,152 +146,83 @@ namespace ProjectVK
                 case PLAYER_STATE.IDLE:
                     break;
                 case PLAYER_STATE.L_RUN:
-                    Position = GetGroundPosition(-1);
+                    Tile loLeftTile = Tiles.GetTile(LoLeft);
+                    if (loLeftTile == null)
+                    {
+                        Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) - RunVelocity;
+                    }
+                    else
+                    {
+                        if (loLeftTile.BlockLeftApproach)
+                        {
+                            int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
+                            if (RunVelocity.X <= distToWall)
+                                Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) - RunVelocity;
+                            else
+                                Position += new Vector2(distToWall, 0);
+                        }
+                        else
+                        {
+                            if (Bounds.Center.X <= loLeftTile.EndPoint.X)
+                                Position = new Vector2(Position.X, loLeftTile.GetYIntersection(Bounds.Center.X)) - RunVelocity;
+                            else
+                                Position = new Vector2(Position.X, groundPos.Y) - RunVelocity;
+                        }
+                    }
                     break;
                 case PLAYER_STATE.R_RUN:
-                    //Position += RunVelocity;
-                    Position = GetGroundPosition(1);
+                    Tile loRightTile = Tiles.GetTile(LoRight);
+                    if (loRightTile == null)
+                    {
+                        Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) + RunVelocity;
+                    }
+                    else
+                    {
+                        if (loRightTile.BlockRightApproach)
+                        {
+                            int distToWall = loRightTile.Bounds.Left - Bounds.Right;
+                            if (RunVelocity.X <= distToWall)
+                                Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) + RunVelocity;
+                            else
+                                Position += new Vector2(distToWall, 0);
+                        }
+                        else
+                        {
+                            if (loRightTile.StartPoint.X <= Bounds.Center.X)
+                                Position = new Vector2(Position.X, loRightTile.GetYIntersection(Bounds.Center.X)) + RunVelocity;
+                            else
+                                Position = new Vector2(Position.X, groundPos.Y) + RunVelocity;
+                        }
+                    }
                     break;
             }
-
         }
-        Vector2 GetGroundPosition(int direction)
+
+        Vector2 GroundPos()
         {
-            Vector2 groundPos = new Vector2();
-            Tile groundTile = GroundTile(direction);
+            Tile belowTile = null;
+            Tile botMidTile = Tiles.GetTile(BotMid);
+            Tile botLeftTile = Tiles.GetTile(BotLeft);
+            Tile botRightTile = Tiles.GetTile(BotRight);
 
-            if (direction < 0)
+            if (botMidTile == null && botRightTile != null)
             {
-                if (groundTile != null)
-                {
-                    groundPos = new Vector2(Position.X - RunVelocity.X, Position.Y - (Bounds.Bottom - groundTile.GetYIntersection((Bounds.Center.X))));
-                }
-                else
-                {
-                    groundPos = Position - RunVelocity;
-                }
-            }
-            else
-            {
-                if (groundTile != null)
-                {
-                    groundPos = new Vector2(Position.X + RunVelocity.X, Position.Y - (Bounds.Bottom - groundTile.GetYIntersection(Bounds.Center.X)));
-                }
-                else
-                {
-                    groundPos = Position + RunVelocity;
-                }
+                belowTile = Tiles.GetPreClampedTile(botRightTile.Row + botRightTile.TopDepth, botRightTile.Column);
+                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Right - (Bounds.Right - botRightTile.Bounds.Left)));
             }
 
-            return groundPos;
-        }
-        Tile GroundTile(int direction)
-        {
-            if (direction < 0) // We're moving to the left
+            if (botMidTile == null && botLeftTile != null)
             {
-                if (ColBotMid != null)
-                {
-                    if (ColBotMid.TopDepth != 0)
-                    {
-                        Tile topTile = Tiles.Map[ColBotMid.Row + ColBotMid.TopDepth, ColBotMid.Column];
-                        if (Bounds.Bottom == topTile.EndPoint.Y)
-                        {
-                            return topTile;
-                        }
-                    }
-                    else
-                    {
-                        return ColBotMid;
-                    }
-                }
-
-                if (ColBotRight != null)
-                {
-                    if (ColBotRight.TopDepth == 0)
-                    {
-                        if (ColBotRight.StartPoint.Y < Bounds.Bottom)
-                        {
-                            return ColBotRight;
-                        }
-                    }
-                }
-
-                if (ColLoLeft != null)
-                {
-                    if (ColLoLeft.TopDepth == 0)
-                    {
-                        if (ColLoLeft.EndPoint.Y >= Bounds.Bottom)
-                        {
-                            return ColLoLeft;
-                        }
-                    }
-                }
-            }
-            else if (0 < direction) // We're moving to the right
-            {
-                if (ColBotMid != null)
-                {
-                    if (ColBotMid.TopDepth != 0)
-                    {
-                        Tile topTile = Tiles.Map[ColBotMid.Row + ColBotMid.TopDepth, ColBotMid.Column];
-                        if (Bounds.Bottom == topTile.StartPoint.Y)
-                        {
-                            return topTile;
-                        }
-                    }
-                    else
-                    {
-                        return ColBotMid;
-                    }
-                }
-
-                if (ColBotLeft != null)
-                {
-                    if (ColBotLeft.TopDepth == 0)
-                    {
-                        if (ColBotLeft.EndPoint.Y < Bounds.Bottom)
-                        {
-                            return ColBotLeft;
-                        }
-                    }
-                }
-
-
-                if (ColLoLeft != null)
-                {
-                    if (ColLoLeft.TopDepth == 0)
-                    {
-                        if (ColLoLeft.EndPoint.Y >= Bounds.Bottom)
-                        {
-                            return ColLoLeft;
-                        }
-                    }
-                }
-
-                if (ColBotRight != null)
-                {
-                    if (ColBotRight.TopDepth == 0)
-                    {
-                        if (ColBotRight.StartPoint.Y == Bounds.Bottom)
-                        {
-                            return ColBotRight;
-                        }
-                    }
-                }
-
-                if (ColLoRight != null)
-                {
-                    if (ColLoRight.TopDepth == 0)
-                    {
-                        if (ColLoRight.StartPoint.Y >= Bounds.Bottom)
-                        {
-                            return ColLoRight;
-                        }
-                    }
-                }
+                belowTile = Tiles.GetPreClampedTile(botLeftTile.Row + botLeftTile.TopDepth, botLeftTile.Column);
+                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Left + (belowTile.EndPoint.X - Bounds.Left)));
             }
 
-            return null;
+            if (botMidTile != null)
+            {
+                belowTile = Tiles.GetPreClampedTile(botMidTile.Row + botMidTile.TopDepth, botMidTile.Column);
+                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Center.X));
+            }
+            return Vector2.Zero;
         }
 
         public override void Draw(GameTime gameTime)

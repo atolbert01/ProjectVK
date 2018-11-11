@@ -22,56 +22,12 @@ namespace ProjectVK
         public TILE_TYPE TileType { get; set; }
         public int TopDepth { get; set; }
         public int BottomDepth { get; set; }
-
+        public int LeftDepth { get; set; }
+        public int RightDepth { get; set; }
+        public int SlopeDir { get; set; }
+        public bool BlockLeftApproach { get; set; }
+        public bool BlockRightApproach { get; set; }
         public Tile(){ }
-
-        public Tile(TILE_TYPE tileType, int row, int column, Texture2D sprite)
-        {
-            TileType = tileType;
-            Row = row;
-            Column = column;
-            Sprite = sprite;
-            Position = new Vector2(Column * Constants.TILE_SIZE, Row * Constants.TILE_SIZE);
-            Bounds = new Rectangle((int)Position.X, (int)Position.Y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-
-            // Really we could have arbitrary slopes if we pass the StartPoint and EndPoint values into the constructor
-            switch (TileType)
-            {
-                case TILE_TYPE.BLOCK:
-                    StartPoint = Position;
-                    EndPoint = new Vector2(Bounds.Right, Bounds.Top);
-                    break;
-                case TILE_TYPE.R_RAMP:
-                    StartPoint = new Vector2(Bounds.Left, Bounds.Bottom);
-                    EndPoint = new Vector2(Bounds.Right, Bounds.Top);
-                    break;
-                case TILE_TYPE.L_RAMP:
-                    StartPoint = new Vector2(Bounds.Left, Bounds.Top);
-                    EndPoint = new Vector2(Bounds.Right, Bounds.Bottom);
-                    break;
-            }
-        }
-        /// <summary>
-        /// The start and end multipliers are float values from 0 to 1. This value is multiplied by Bounds.Top to determine start and end ramp heights.
-        /// </summary>
-        /// <param name="tileType"></param>
-        /// <param name="row"></param>
-        /// <param name="column"></param>
-        /// <param name="startMultiplier"></param>
-        /// <param name="endMultiplier"></param>
-        /// <param name="sprite"></param>
-        public Tile(TILE_TYPE tileType, int row, int column, float startMultiplier, float endMultiplier, Texture2D sprite)
-        {
-            TileType = tileType;
-            Row = row;
-            Column = column;
-            Sprite = sprite;
-            Position = new Vector2(Column * Constants.TILE_SIZE, Row * Constants.TILE_SIZE);
-            Bounds = new Rectangle((int)Position.X, (int)Position.Y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-
-            StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
-            EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
-        }
 
         /// <summary>
         /// This constructor to be utilized when creating/initializing Tiles indirectly with call to TileMap.InsertTile(). This is the preferred way to create Tiles.
@@ -87,6 +43,24 @@ namespace ProjectVK
             StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
             EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
 
+            if (StartPoint.Y - EndPoint.Y < 0)
+            {
+                SlopeDir = -1;
+                BlockLeftApproach = false;
+                BlockRightApproach = true;
+            }
+            else if (0 < StartPoint.Y - EndPoint.Y)
+            {
+                SlopeDir = 1;
+                BlockLeftApproach = true;
+                BlockRightApproach = false;
+            }
+            else
+            {
+                SlopeDir = 0;
+                BlockLeftApproach = true;
+                BlockRightApproach = true;
+            }
         }
 
         public float GetYIntersection(float xPos)

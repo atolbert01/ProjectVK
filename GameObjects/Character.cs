@@ -9,6 +9,7 @@ namespace ProjectVK
         public AnimationState AnimState { get; set; }
         public AnimationStateData AnimStateData { get; set; }
         public Skeleton Skeleton { get; set; }
+        public float ElapsedTime { get; set; }
         private Vector2 position;
         public new Vector2 Position
         {
@@ -19,7 +20,8 @@ namespace ProjectVK
             set
             {
                 position = value;
-                if(Skeleton != null)
+                position += Vector2.Zero * ElapsedTime;
+                if (Skeleton != null)
                 {
                     Skeleton.X = position.X;
                     Skeleton.Y = position.Y;

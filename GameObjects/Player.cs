@@ -33,8 +33,10 @@ namespace ProjectVK
         private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top, (int)(Bounds.Center.X)); } }
         private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
         private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
-        private Point LoRight { get { return new Point((int)(Bounds.Right + RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
-        private Point LoLeft { get { return new Point((int)(Bounds.Left - RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        //private Point LoRight { get { return new Point((int)(Bounds.Right + RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        //private Point LoLeft { get { return new Point((int)(Bounds.Left - RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        private Point LoRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
+        private Point LoLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
         private Point BotLeft { get { return new Point(Bounds.Left - 1, Bounds.Bottom + 1); } }
         private Point BotMid { get { return new Point(Bounds.Center.X, Bounds.Bottom + 1); } }
         private Point BotRight { get { return new Point(Bounds.Right + 1, Bounds.Bottom + 1); } }
@@ -71,7 +73,7 @@ namespace ProjectVK
 
         public void Update(GameTime gameTime)
         {
-
+            ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             HandleInput(); 
             ApplyGravity();
             ApplyStateBehavior();
@@ -194,6 +196,8 @@ namespace ProjectVK
                                 Position = new Vector2(Position.X, groundPos.Y) + RunVelocity;
                         }
                     }
+                    break;
+                case PLAYER_STATE.JUMP:
                     break;
             }
         }

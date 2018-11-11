@@ -97,7 +97,7 @@ namespace ProjectVK
             Tiles.InsertTile(19, 10, 0.5f, 0.0f, Textures.Items[5]);
             Tiles.InsertTile(20, 11, 1.0f, 0.0f, Textures.Items[2]);
 
-            Player = new Player(graphicsDevice, assetsFolder, new Vector2(800, 400), 12.0f, this);
+            Player = new Player(graphicsDevice, assetsFolder, new Vector2(800, 400), 12f, this);
             Characters.Add(Player);
         }
 

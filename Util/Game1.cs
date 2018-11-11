@@ -24,6 +24,8 @@ namespace ProjectVK
 
         public Game1()
         {
+            IsFixedTimeStep = false;
+
             graphics = new GraphicsDeviceManager(this);
 
             graphics.PreferredBackBufferWidth = 1280;

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Spine;
+using System;
 
 namespace ProjectVK
 {
@@ -17,7 +18,23 @@ namespace ProjectVK
     {
         public PLAYER_STATE PlayerState { get; set; }
         public Rectangle Bounds { get { return new Rectangle((int)(Position.X) - 55, (int)(Position.Y) - yOffset, 110, 288); } }
-        public bool IsGrounded { get; set; }
+        private bool _isGrounded;
+        public bool IsGrounded
+        {
+            get
+            {
+                return _isGrounded;
+            }
+            set
+            {
+                _isGrounded = value;
+
+                if (_isGrounded)
+                {
+                    airResist = 0.0f;
+                }
+            }
+        }
         public bool IsBlockedLeft { get; set; }
         public bool IsBlockedRight { get; set; }
         public bool IsBlockedTop { get; set; }
@@ -33,14 +50,41 @@ namespace ProjectVK
         private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top, (int)(Bounds.Center.X)); } }
         private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
         private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
-        //private Point LoRight { get { return new Point((int)(Bounds.Right + RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
-        //private Point LoLeft { get { return new Point((int)(Bounds.Left - RunVelocity.X), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
         private Point LoRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
         private Point LoLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
-        private Point BotLeft { get { return new Point(Bounds.Left - 1, Bounds.Bottom + 1); } }
+        private Point BotLeft { get { return new Point(Bounds.Left + 1, Bounds.Bottom + 1); } }
         private Point BotMid { get { return new Point(Bounds.Center.X, Bounds.Bottom + 1); } }
-        private Point BotRight { get { return new Point(Bounds.Right + 1, Bounds.Bottom + 1); } }
+        private Point BotRight { get { return new Point(Bounds.Right - 1, Bounds.Bottom + 1); } }
         private Vector2 groundPos { get; set; }
+        private float airResist { get; set; }
+        private bool _isJumpPressed { get; set; }
+        private bool IsJumpPressed
+        {
+            get
+            {
+                return _isJumpPressed;
+            }
+            set
+            {
+                _isJumpPressed = value;
+            }
+        }
+        private Vector2 _jumpVelocity;
+        private Vector2 jumpVelocity
+        {
+            get
+            {
+                return _jumpVelocity;
+            }
+            set
+            {
+                _jumpVelocity = value;
+
+                if (0 <= _jumpVelocity.Y)
+                    PlayerState = PLAYER_STATE.FALLING;
+            }
+        }
+        private int dir = 0;
         public Player(GraphicsDevice graphicsDevice, string assetsFolder, Vector2 startPos, float gravity, Room currentRoom) : base(startPos)
         {
             Load(new Atlas(assetsFolder + "clove.atlas", new XnaTextureLoader(graphicsDevice)), assetsFolder + "clove");
@@ -48,6 +92,7 @@ namespace ProjectVK
             CurrentRoom = currentRoom;
             Tiles = CurrentRoom.Tiles;
             PlayerState = PLAYER_STATE.FALLING;
+            airResist = 0.0f;
         }
         public override void Load(Atlas atlas, string animName)
         {
@@ -74,8 +119,8 @@ namespace ProjectVK
         public void Update(GameTime gameTime)
         {
             ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            HandleInput(); 
-            ApplyGravity();
+            HandleInput();
+            if (PlayerState != PLAYER_STATE.JUMP) ApplyGravity();
             ApplyStateBehavior();
 
             AnimState.Apply(Skeleton);
@@ -88,8 +133,9 @@ namespace ProjectVK
 
             if (CurrentKeyState.IsKeyDown(Keys.Right))
             {
+                dir = 1;
                 if (Skeleton.FlipX == true) Skeleton.FlipX = false;
-                if (PlayerState != PLAYER_STATE.R_RUN && PlayerState != PLAYER_STATE.JUMP)
+                if (PlayerState != PLAYER_STATE.R_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
                     AnimState.SetAnimation(0, "run", true);
                     PlayerState = PLAYER_STATE.R_RUN;
@@ -97,8 +143,9 @@ namespace ProjectVK
             }
             else if (CurrentKeyState.IsKeyDown(Keys.Left))
             {
+                dir = -1;
                 if (Skeleton.FlipX == false) Skeleton.FlipX = true;
-                if (PlayerState != PLAYER_STATE.L_RUN && PlayerState != PLAYER_STATE.JUMP)
+                if (PlayerState != PLAYER_STATE.L_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
                     AnimState.SetAnimation(0, "run", true);
                     PlayerState = PLAYER_STATE.L_RUN;
@@ -106,6 +153,7 @@ namespace ProjectVK
             }
             else if (!(CurrentKeyState.IsKeyDown(Keys.Right)) && !(CurrentKeyState.IsKeyDown(Keys.Left)))
             {
+                dir = 0;
                 if (PlayerState != PLAYER_STATE.IDLE && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
                     AnimState.SetAnimation(0, "idle", true);
@@ -113,9 +161,16 @@ namespace ProjectVK
                 }
             }
 
-            if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
+            //if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
+            if (IsGrounded && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
             {
                 PlayerState = PLAYER_STATE.JUMP;
+                IsJumpPressed = true;
+            }
+
+            if (PlayerState == PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyUp(Keys.Z) && PrevKeyState.IsKeyDown(Keys.Z))
+            {
+                IsJumpPressed = false;
             }
 
             PrevKeyState = CurrentKeyState;
@@ -125,37 +180,56 @@ namespace ProjectVK
             groundPos = GroundPos();
             if (groundPos == Vector2.Zero)
             {
-                Position = new Vector2(Position.X, Position.Y + gravity);
+                if (0 <= gravity - airResist)
+                {
+                    Position += new Vector2(0, gravity - airResist);
+                }
+                IsGrounded = false;
             }
             else
             {
                 float distToGround = groundPos.Y - Bounds.Bottom;
                 // The Bounds.Center.Y check prevents finding the groundPos.Y above the player which causes gravity to be applied incorrectly.
-                if (Bounds.Center.Y <= groundPos.Y && distToGround < gravity)
+                if (Bounds.Center.Y <= groundPos.Y && distToGround < gravity && (distToGround < 0 || 1 <= distToGround))
                 {
-                    Position = new Vector2(Position.X, Position.Y + distToGround);
+                    Position += new Vector2(0, distToGround);
+                    IsGrounded = false;
+                }
+                else if(distToGround <= 1)
+                {
+                    IsGrounded = true;
                 }
                 else
                 {
-                    Position = new Vector2(Position.X, Position.Y + gravity);
+                    Position += new Vector2(0, gravity);
+                    IsGrounded = false;
                 }
             }
         }
         public void ApplyStateBehavior()
         {
+            Tile loLeftTile;
+            Tile loRightTile;
             switch (PlayerState)
             {
                 case PLAYER_STATE.IDLE:
                     break;
                 case PLAYER_STATE.L_RUN:
-                    Tile loLeftTile = Tiles.GetTile(LoLeft);
+                    loLeftTile = Tiles.GetTile(LoLeft);
                     if (loLeftTile == null)
                     {
-                        Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) - RunVelocity;
+                        if (groundPos != Vector2.Zero && groundPos.Y > LoLeft.Y)
+                        {
+                            Position = new Vector2(Position.X - RunVelocity.X, groundPos.Y);
+                        }
+                        else
+                        {
+                            Position -= RunVelocity;
+                        }
                     }
                     else
                     {
-                        if (loLeftTile.BlockLeftApproach)
+                        if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
                         {
                             int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
                             if (RunVelocity.X <= distToWall)
@@ -173,14 +247,21 @@ namespace ProjectVK
                     }
                     break;
                 case PLAYER_STATE.R_RUN:
-                    Tile loRightTile = Tiles.GetTile(LoRight);
+                    loRightTile = Tiles.GetTile(LoRight);
                     if (loRightTile == null)
                     {
-                        Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) + RunVelocity;
+                        if (groundPos != Vector2.Zero && groundPos.Y > LoRight.Y)
+                        {
+                            Position = new Vector2(Position.X + RunVelocity.X, groundPos.Y);
+                        }
+                        else
+                        {
+                            Position += RunVelocity;
+                        }
                     }
                     else
                     {
-                        if (loRightTile.BlockRightApproach)
+                        if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
                         {
                             int distToWall = loRightTile.Bounds.Left - Bounds.Right;
                             if (RunVelocity.X <= distToWall)
@@ -198,6 +279,38 @@ namespace ProjectVK
                     }
                     break;
                 case PLAYER_STATE.JUMP:
+                    if (IsJumpPressed)
+                    {
+                        airResist += 0.6f;
+                        jumpVelocity = new Vector2(0, -17.0f + airResist);
+                        Position += jumpVelocity;
+                    }
+                    else // Then we need to resolve this jump.
+                    {
+                        if (jumpVelocity.Y < gravity)
+                        {
+                            airResist += 1.15f;
+                            jumpVelocity = new Vector2(0, -17.0f + airResist);
+                            Position += jumpVelocity;
+                        }
+                        else
+                        {
+                            PlayerState = PLAYER_STATE.FALLING;
+                        }
+                    }
+
+                    break;
+                case PLAYER_STATE.FALLING:
+                    if (IsGrounded) PlayerState = PLAYER_STATE.IDLE;
+                    if (airResist > gravity)
+                    {
+                        airResist -= 1.0f;
+                    }
+                    else
+                    {
+                        airResist = 0.0f;
+                    }
+
                     break;
             }
         }

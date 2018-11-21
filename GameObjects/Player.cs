@@ -47,9 +47,11 @@ namespace ProjectVK
         private Vector2 RunVelocity = new Vector2(13, 0);
         private KeyboardState CurrentKeyState { get; set; }
         private KeyboardState PrevKeyState { get; set; }
-        private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top, (int)(Bounds.Center.X)); } }
-        private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
-        private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
+        private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top - 1, (int)(Bounds.Center.X)); } }
+        //private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
+        //private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
+        private Point HiRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Top + (Bounds.Height * 0.222f))); } }
+        private Point HiLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Top + (Bounds.Height * 0.222f))); } }
         private Point LoRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
         private Point LoLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
         private Point BotLeft { get { return new Point(Bounds.Left + 1, Bounds.Bottom + 1); } }
@@ -138,7 +140,6 @@ namespace ProjectVK
                 if (Skeleton.FlipX == true) Skeleton.FlipX = false;
                 if (PlayerState != PLAYER_STATE.R_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
-                    //AnimState.SetAnimation(0, "run", true);
                     PlayerState = PLAYER_STATE.R_RUN;
                 }
             }
@@ -148,13 +149,11 @@ namespace ProjectVK
                 if (Skeleton.FlipX == false) Skeleton.FlipX = true;
                 if (PlayerState != PLAYER_STATE.L_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
-                    //AnimState.SetAnimation(0, "run", true);
                     PlayerState = PLAYER_STATE.L_RUN;
                 }
             }
 
             if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
-            //if (IsGrounded && CurrentKeyState.IsKeyDown(Keys.Z) && !PrevKeyState.IsKeyDown(Keys.Z))
             {
                 //IsGrounded = false;
                 PlayerState = PLAYER_STATE.JUMP;
@@ -173,15 +172,16 @@ namespace ProjectVK
             groundPos = GroundPos();
             if (groundPos == Vector2.Zero)
             {
-                PlayerState = PLAYER_STATE.FALLING;
-
-                if ((gravity - airResist) < 0)
+                if(PlayerState != PLAYER_STATE.JUMP)
                 {
-                    Position += new Vector2(0, gravity);
-                } 
-                else if (0 <= (gravity - airResist))
-                {
-                    Position += new Vector2(0, gravity - airResist);
+                    if ((gravity - airResist) < 0)
+                    {
+                        Position += new Vector2(0, gravity);
+                    }
+                    else if (0 <= (gravity - airResist))
+                    {
+                        Position += new Vector2(0, gravity - airResist);
+                    }
                 }
                 IsGrounded = false;
             }
@@ -218,6 +218,9 @@ namespace ProjectVK
         {
             Tile loLeftTile;
             Tile loRightTile;
+            Tile hiLeftTile;
+            Tile hiRightTile;
+
             switch (PlayerState)
             {
                 case PLAYER_STATE.IDLE:
@@ -300,34 +303,99 @@ namespace ProjectVK
                     break;
                 case PLAYER_STATE.JUMP:
                     // First handle vertical movement
-                    if (IsJumpPressed)
+                    groundPos = GroundPos(); // We aren't applying gravity, but we still need to find the ground.
+                    //if (groundPos.Y - Bounds.Bottom < LoLeft.Y)
+                    if (groundPos == Vector2.Zero || ((-16 < groundPos.Y - Bounds.Bottom) && (groundPos.Y - Bounds.Bottom < LoLeft.Y)))
                     {
-                        airResist += 0.25f;
-                        jumpVelocity = new Vector2(0, -19.0f + airResist);
-                        Position += jumpVelocity;
-                    }
-                    else // Then we need to resolve this jump.
-                    {
-                        if (jumpVelocity.Y < gravity)
+                        if (IsJumpPressed)
                         {
-                            airResist += 1.0f;
-                            jumpVelocity = new Vector2(0, -17.0f + airResist);
+                            airResist += 0.25f;
+                            jumpVelocity = new Vector2(0, -19.0f + airResist);
                             Position += jumpVelocity;
                         }
-                        else
+                        else // Then we need to resolve this jump.
                         {
-                            PlayerState = PLAYER_STATE.FALLING;
+                            if (jumpVelocity.Y < gravity)
+                            {
+                                airResist += 1.0f;
+                                jumpVelocity = new Vector2(0, -17.0f + airResist);
+                                Position += jumpVelocity;
+                            }
+                            else
+                            {
+                                PlayerState = PLAYER_STATE.FALLING;
+                            }
+                        }
+
+                        // Next handle horizontal movement
+                        if (dir < 0) // We're trying to move to the left
+                        {
+                            loLeftTile = Tiles.GetTile(LoLeft);
+                            hiLeftTile = Tiles.GetTile(HiLeft);
+                            if (loLeftTile == null && hiLeftTile == null)
+                            {
+                                Position -= new Vector2(10, 0);
+                            }
+                            else if (hiLeftTile == null) // If we reach this then we have a lo tile but no hi tile
+                            {
+                                if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
+                                {
+                                    int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
+                                    if (10 <= distToWall)
+                                        Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
+                                    else
+                                        Position += new Vector2(distToWall, 0);
+                                }
+                                else
+                                {
+                                    Position -= new Vector2(10, 0);
+                                }
+                            }
+                            else // There is at least a hi tile and maybe a lo tile as well.
+                            {
+                                if (hiLeftTile.BlockLeftApproach)
+                                {
+                                    int distToWall = hiLeftTile.Bounds.Right - Bounds.Left;
+                                    if (10 <= distToWall)
+                                        Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
+                                    else
+                                        Position += new Vector2(distToWall, 0);
+                                }
+                                else
+                                {
+                                    Position -= new Vector2(10, 0);
+                                }
+                            }
+                        }
+                        else if (0 < dir) // We're trying to move to the right
+                        {
+                            loRightTile = Tiles.GetTile(LoRight);
+
+                            if (loRightTile == null)
+                            {
+                                Position += new Vector2(10, 0);
+                            }
+                            else
+                            {
+                                if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
+                                {
+                                    int distToWall = loRightTile.Bounds.Left - Bounds.Right;
+                                    if (10 <= distToWall)
+                                        //Position = new Vector2(Position.X + 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
+                                        Position += new Vector2(10, 0);
+                                    else
+                                        Position += new Vector2(distToWall, 0);
+                                }
+                                else
+                                {
+                                    Position += new Vector2(10, 0);
+                                }
+                            }
                         }
                     }
-
-                    // Next handle horizontal movement
-                    if (dir < 0) // We're trying to move to the left
+                    else // The ground is directly below us. We need to land.
                     {
-                        Position -= new Vector2(10, 0);
-                    }
-                    else if (0 < dir) // We're trying to move to the right
-                    {
-                        Position += new Vector2(10, 0);
+                        PlayerState = PLAYER_STATE.FALLING;
                     }
 
 
@@ -347,11 +415,50 @@ namespace ProjectVK
                     // Next handle horizontal movement
                     if (dir < 0) // We're trying to move to the left
                     {
-                        Position -= new Vector2(10, 0);
+                        loLeftTile = Tiles.GetTile(LoLeft);
+                        if (loLeftTile == null)
+                        {
+                            Position -= new Vector2(10, 0);
+                        }
+                        else
+                        {
+                            if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
+                            {
+                                int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
+                                if (10 <= distToWall)
+                                    Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
+                                else
+                                    Position += new Vector2(distToWall, 0);
+                            }
+                            else
+                            {
+                                Position -= new Vector2(10, 0);
+                            }
+                        }
                     }
                     else if (0 < dir) // We're trying to move to the right
                     {
-                        Position += new Vector2(10, 0);
+                        loRightTile = Tiles.GetTile(LoRight);
+
+                        if (loRightTile == null)
+                        {
+                            Position += new Vector2(10, 0);
+                        }
+                        else
+                        {
+                            if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
+                            {
+                                int distToWall = loRightTile.Bounds.Left - Bounds.Right;
+                                if (10 <= distToWall)
+                                    Position = new Vector2(Position.X + 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
+                                else
+                                    Position += new Vector2(distToWall, 0);
+                            }
+                            else
+                            {
+                                Position += new Vector2(10, 0);
+                            }
+                        }
                     }
 
                     break;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Spine;
+using System;
 
 namespace ProjectVK
 {
@@ -11,6 +12,8 @@ namespace ProjectVK
         public Skeleton Skeleton { get; set; }
         public float ElapsedTime { get; set; }
         private Vector2 position;
+        private float xRemainder = 0.0f;
+        private float yRemainder = 0.0f;
         public new Vector2 Position
         {
             get
@@ -19,7 +22,16 @@ namespace ProjectVK
             }
             set
             {
+                PrevPosition = Position;
                 position = value;
+                //int newX = (int)Math.Floor(value.X + xRemainder);
+                //int newY = (int)Math.Floor(value.Y + yRemainder);
+
+                //xRemainder = value.X - newX;// Math.Abs(newX - value.X);
+                //yRemainder = value.Y - newY;// Math.Abs(newY - value.Y);
+
+                //position = new Vector2(newX, newY);
+                //position = new Vector2((int)value.X, (int)value.Y);
                 position += Vector2.Zero * ElapsedTime;
                 if (Skeleton != null)
                 {
@@ -28,6 +40,7 @@ namespace ProjectVK
                 }
             }
         }
+        public Vector2 PrevPosition { get; set; }
 
         /// <summary>
         /// The Character class is a subclass of GameObject. Character objects have a Skeleton, AnimationState, and SkeletonBounds. Handles logic for updating and drawing the skeletal animation.

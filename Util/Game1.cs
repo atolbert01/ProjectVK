@@ -68,6 +68,10 @@ namespace ProjectVK
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+            CONSTANTS.GRAPHICS_DEVICE = graphics.GraphicsDevice;
+            CONSTANTS.PIXEL_TEX = new Texture2D(CONSTANTS.GRAPHICS_DEVICE, 1, 1);
+            CONSTANTS.PIXEL_TEX.SetData(new Color[] { Color.White });
+
             pixelTex = new Texture2D(graphics.GraphicsDevice, 1, 1);
             pixelTex.SetData(new Color[] { Color.White });
 

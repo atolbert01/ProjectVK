@@ -17,7 +17,7 @@ namespace ProjectVK
     class Player : Character
     {
         public PLAYER_STATE PlayerState { get; set; }
-        public Rectangle Bounds { get { return new Rectangle((int)(Position.X) - 55, (int)(Position.Y) - yOffset, 110, 288); } }
+        public Rectangle Bounds { get { return new Rectangle((int)(Position.X) - 55, (int)(Position.Y) - yOffset, 110, yOffset); } }
         private bool _isGrounded;
         public bool IsGrounded
         {
@@ -43,21 +43,12 @@ namespace ProjectVK
         private float gravity;
         private readonly int yOffset = 288;
         private int TileSize { get; set; }
-        private Vector2 PrevPos { get; set; }
+        private float PrevBoundsBottom { get; set; }
         private Vector2 RunVelocity = new Vector2(13, 0);
         private KeyboardState CurrentKeyState { get; set; }
         private KeyboardState PrevKeyState { get; set; }
-        private Point TopMid { get { return Tiles.GetClampedPoint(Bounds.Top - 1, (int)(Bounds.Center.X)); } }
-        //private Point MidLeft { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Left + 1)); } }
-        //private Point MidRight { get { return Tiles.GetClampedPoint((int)(Bounds.Top + (Bounds.Height * 0.5)), (int)(Bounds.Right)); } }
-        private Point HiRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Top + (Bounds.Height * 0.222f))); } }
-        private Point HiLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Top + (Bounds.Height * 0.222f))); } }
-        private Point LoRight { get { return new Point((Bounds.Right + 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
-        private Point LoLeft { get { return new Point((Bounds.Left - 12), (int)(Bounds.Bottom - (Bounds.Height * 0.222f))); } }
-        private Point BotLeft { get { return new Point(Bounds.Left + 1, Bounds.Bottom + 1); } }
-        private Point BotMid { get { return new Point(Bounds.Center.X, Bounds.Bottom + 1); } }
-        private Point BotRight { get { return new Point(Bounds.Right - 1, Bounds.Bottom + 1); } }
-        private Vector2 groundPos { get; set; }
+        private Vector2 floorBelow { get; set; }
+        private FloorNode currentNode { get; set; }
         private float airResist { get; set; }
         private bool IsJumpPressed { get; set; }
         private bool IsRightPressed { get; set; }
@@ -78,13 +69,13 @@ namespace ProjectVK
                     //PlayerState = PLAYER_STATE.FALLING;
             }
         }
-        private int dir = 0;
+        private int dir = 1; // We'll start facing right by default.
         public Player(GraphicsDevice graphicsDevice, string assetsFolder, Vector2 startPos, float gravity, Room currentRoom) : base(startPos)
         {
             Load(new Atlas(assetsFolder + "clove.atlas", new XnaTextureLoader(graphicsDevice)), assetsFolder + "clove");
             this.gravity = gravity;
             CurrentRoom = currentRoom;
-            Tiles = CurrentRoom.Tiles;
+            //Tiles = CurrentRoom.Tiles;
             PlayerState = PLAYER_STATE.FALLING;
             airResist = 0.0f;
         }
@@ -114,12 +105,9 @@ namespace ProjectVK
         {
             ElapsedTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             HandleInput();
-            if (PlayerState != PLAYER_STATE.JUMP) ApplyGravity();
             ApplyStateBehavior();
-
             AnimState.Apply(Skeleton);
-            PrevPos = Position;
-
+            PrevBoundsBottom = PrevPosition.Y;
         }
         public void HandleInput()
         {
@@ -127,7 +115,9 @@ namespace ProjectVK
 
             if (!(CurrentKeyState.IsKeyDown(Keys.Right)) && !(CurrentKeyState.IsKeyDown(Keys.Left)))
             {
-                dir = 0;
+                //dir = 0;
+                IsLeftPressed = false;
+                IsRightPressed = false;
                 if (PlayerState != PLAYER_STATE.IDLE && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
                     PlayerState = PLAYER_STATE.IDLE;
@@ -137,6 +127,8 @@ namespace ProjectVK
             if (CurrentKeyState.IsKeyDown(Keys.Right))
             {
                 dir = 1;
+                IsLeftPressed = false;
+                IsRightPressed = true;
                 if (Skeleton.FlipX == true) Skeleton.FlipX = false;
                 if (PlayerState != PLAYER_STATE.R_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
@@ -146,6 +138,8 @@ namespace ProjectVK
             else if (CurrentKeyState.IsKeyDown(Keys.Left))
             {
                 dir = -1;
+                IsLeftPressed = true;
+                IsRightPressed = false;
                 if (Skeleton.FlipX == false) Skeleton.FlipX = true;
                 if (PlayerState != PLAYER_STATE.L_RUN && PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING)
                 {
@@ -153,343 +147,518 @@ namespace ProjectVK
                 }
             }
 
-            if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
+            if (PlayerState != PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING 
+                && CurrentKeyState.IsKeyDown(Keys.Z) && PrevKeyState.IsKeyUp(Keys.Z))
             {
-                //IsGrounded = false;
+                IsGrounded = false;
                 PlayerState = PLAYER_STATE.JUMP;
                 IsJumpPressed = true;
             }
 
-            if (PlayerState == PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING && CurrentKeyState.IsKeyUp(Keys.Z) && PrevKeyState.IsKeyDown(Keys.Z))
+            if (/*PlayerState == PLAYER_STATE.JUMP && PlayerState != PLAYER_STATE.FALLING 
+                && */CurrentKeyState.IsKeyUp(Keys.Z) && PrevKeyState.IsKeyDown(Keys.Z))
             {
                 IsJumpPressed = false;
             }
 
             PrevKeyState = CurrentKeyState;
         }
-        public void ApplyGravity()
-        {
-            groundPos = GroundPos();
-            if (groundPos == Vector2.Zero)
-            {
-                if(PlayerState != PLAYER_STATE.JUMP)
-                {
-                    if ((gravity - airResist) < 0)
-                    {
-                        Position += new Vector2(0, gravity);
-                    }
-                    else if (0 <= (gravity - airResist))
-                    {
-                        Position += new Vector2(0, gravity - airResist);
-                    }
-                }
-                IsGrounded = false;
-            }
-            else
-            {
-                float distToGround = groundPos.Y - Bounds.Bottom;
-                // The Bounds.Center.Y check prevents finding the groundPos.Y above the player which causes gravity to be applied incorrectly.
-                if (Bounds.Center.Y <= groundPos.Y && distToGround < gravity && (distToGround < 0 || 1 <= distToGround))
-                {
-                    Position += new Vector2(0, distToGround);
-                    IsGrounded = false;
-                    if (PlayerState == PLAYER_STATE.FALLING)
-                    {
-                        if (dir < 0)
-                            PlayerState = PLAYER_STATE.L_RUN;
-                        else if (0 < dir)
-                            PlayerState = PLAYER_STATE.R_RUN;
-                        else
-                            PlayerState = PLAYER_STATE.IDLE;
-                    }
-                }
-                else if(distToGround <= 1)
-                {
-                    IsGrounded = true;
-                }
-                else
-                {
-                    Position += new Vector2(0, gravity);
-                    IsGrounded = false;
-                }
-            }
-        }
         public void ApplyStateBehavior()
         {
-            Tile loLeftTile;
-            Tile loRightTile;
-            Tile hiLeftTile;
-            Tile hiRightTile;
+            float offset = 0.0f;
+            float distToGround = -1.0f;
 
             switch (PlayerState)
             {
                 case PLAYER_STATE.IDLE:
-                    if (AnimState.GetCurrent(0).ToString() != "idle")
+                    // Set the animation
+                    if (AnimState.GetCurrent(0).ToString() != "idle") AnimState.SetAnimation(0, "idle", true);
+
+                    // Check Floor to ensure we are still on the ground
+                    if (IsGrounded)
                     {
-                        AnimState.SetAnimation(0, "idle", true);
-                    }
-                    break;
-                case PLAYER_STATE.L_RUN:
-                    if (AnimState.GetCurrent(0).ToString() != "run")
-                    {
-                        AnimState.SetAnimation(0, "run", true);
-                    }
-                    loLeftTile = Tiles.GetTile(LoLeft);
-                    if (loLeftTile == null)
-                    {
-                        if (groundPos != Vector2.Zero && groundPos.Y > LoLeft.Y)
+                        if (currentNode != null)
                         {
-                            Position = new Vector2(Position.X - RunVelocity.X, groundPos.Y);
-                        }
-                        else
-                        {
-                            Position -= RunVelocity;
-                        }
-                    }
-                    else
-                    {
-                        if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
-                        {
-                            int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
-                            if (RunVelocity.X <= distToWall)
-                                Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) - RunVelocity;
+                            Vector2 newFloorPos = getWalkingDistance();
+                            //Vector2 newFloorPos = getFloorBelow();
+
+                            if (newFloorPos != Vector2.Zero)
+                                Position = newFloorPos;
                             else
-                                Position += new Vector2(distToWall, 0);
-                        }
-                        else
-                        {
-                            if (Bounds.Center.X <= loLeftTile.EndPoint.X)
-                                Position = new Vector2(Position.X, loLeftTile.GetYIntersection(Bounds.Center.X)) - RunVelocity;
-                            else
-                                Position = new Vector2(Position.X, groundPos.Y) - RunVelocity;
-                        }
-                    }
-                    break;
-                case PLAYER_STATE.R_RUN:
-                    if (AnimState.GetCurrent(0).ToString() != "run")
-                    {
-                        AnimState.SetAnimation(0, "run", true);
-                    }
-                    loRightTile = Tiles.GetTile(LoRight);
-                    if (loRightTile == null)
-                    {
-                        if (groundPos != Vector2.Zero && groundPos.Y > LoRight.Y)
-                        {
-                            Position = new Vector2(Position.X + RunVelocity.X, groundPos.Y);
-                        }
-                        else
-                        {
-                            Position += RunVelocity;
-                        }
-                    }
-                    else
-                    {
-                        if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
-                        {
-                            int distToWall = loRightTile.Bounds.Left - Bounds.Right;
-                            if (RunVelocity.X <= distToWall)
-                                Position = new Vector2(Position.X, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y)) + RunVelocity;
-                            else
-                                Position += new Vector2(distToWall, 0);
-                        }
-                        else
-                        {
-                            if (loRightTile.StartPoint.X <= Bounds.Center.X)
-                                Position = new Vector2(Position.X, loRightTile.GetYIntersection(Bounds.Center.X)) + RunVelocity;
-                            else
-                                Position = new Vector2(Position.X, groundPos.Y) + RunVelocity;
-                        }
-                    }
-                    break;
-                case PLAYER_STATE.JUMP:
-                    // First handle vertical movement
-                    groundPos = GroundPos(); // We aren't applying gravity, but we still need to find the ground.
-                    //if (groundPos.Y - Bounds.Bottom < LoLeft.Y)
-                    if (groundPos == Vector2.Zero || ((-16 < groundPos.Y - Bounds.Bottom) && (groundPos.Y - Bounds.Bottom < LoLeft.Y)))
-                    {
-                        if (IsJumpPressed)
-                        {
-                            airResist += 0.25f;
-                            jumpVelocity = new Vector2(0, -19.0f + airResist);
-                            Position += jumpVelocity;
-                        }
-                        else // Then we need to resolve this jump.
-                        {
-                            if (jumpVelocity.Y < gravity)
-                            {
-                                airResist += 1.0f;
-                                jumpVelocity = new Vector2(0, -17.0f + airResist);
-                                Position += jumpVelocity;
-                            }
-                            else
-                            {
                                 PlayerState = PLAYER_STATE.FALLING;
-                            }
-                        }
-
-                        // Next handle horizontal movement
-                        if (dir < 0) // We're trying to move to the left
-                        {
-                            loLeftTile = Tiles.GetTile(LoLeft);
-                            hiLeftTile = Tiles.GetTile(HiLeft);
-                            if (loLeftTile == null && hiLeftTile == null)
-                            {
-                                Position -= new Vector2(10, 0);
-                            }
-                            else if (hiLeftTile == null) // If we reach this then we have a lo tile but no hi tile
-                            {
-                                if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
-                                {
-                                    int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
-                                    if (10 <= distToWall)
-                                        Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
-                                    else
-                                        Position += new Vector2(distToWall, 0);
-                                }
-                                else
-                                {
-                                    Position -= new Vector2(10, 0);
-                                }
-                            }
-                            else // There is at least a hi tile and maybe a lo tile as well.
-                            {
-                                if (hiLeftTile.BlockLeftApproach)
-                                {
-                                    int distToWall = hiLeftTile.Bounds.Right - Bounds.Left;
-                                    if (10 <= distToWall)
-                                        Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
-                                    else
-                                        Position += new Vector2(distToWall, 0);
-                                }
-                                else
-                                {
-                                    Position -= new Vector2(10, 0);
-                                }
-                            }
-                        }
-                        else if (0 < dir) // We're trying to move to the right
-                        {
-                            loRightTile = Tiles.GetTile(LoRight);
-
-                            if (loRightTile == null)
-                            {
-                                Position += new Vector2(10, 0);
-                            }
-                            else
-                            {
-                                if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
-                                {
-                                    int distToWall = loRightTile.Bounds.Left - Bounds.Right;
-                                    if (10 <= distToWall)
-                                        //Position = new Vector2(Position.X + 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
-                                        Position += new Vector2(10, 0);
-                                    else
-                                        Position += new Vector2(distToWall, 0);
-                                }
-                                else
-                                {
-                                    Position += new Vector2(10, 0);
-                                }
-                            }
                         }
                     }
-                    else // The ground is directly below us. We need to land.
+                    else
                     {
                         PlayerState = PLAYER_STATE.FALLING;
                     }
+                    break;
+                case PLAYER_STATE.L_RUN:
+                    // Set the animation
+                    if (AnimState.GetCurrent(0).ToString() != "run") AnimState.SetAnimation(0, "run", true);
+
+                    // Check Floor and move
+                    if (currentNode != null && IsGrounded)
+                    {
+                        Vector2 newFloorPos = getWalkingDistance(RunVelocity);
+
+                        if (newFloorPos != Vector2.Zero)
+                            Position = newFloorPos;
+                        else
+                            PlayerState = PLAYER_STATE.FALLING;
+                    }
+                    else
+                    {
+                        PlayerState = PLAYER_STATE.FALLING;
+                    }
+                    break;
+                case PLAYER_STATE.R_RUN:
+                    // Set the animation
+                    if (AnimState.GetCurrent(0).ToString() != "run") AnimState.SetAnimation(0, "run", true);
+
+                    // Check Floor and move
+                    if (currentNode != null && IsGrounded)
+                    {
+                        Vector2 newFloorPos = getWalkingDistance(RunVelocity);
+
+                        if (newFloorPos != Vector2.Zero)
+                            Position = newFloorPos;
+                        else
+                            PlayerState = PLAYER_STATE.FALLING;
+                    }
+                    else
+                    {
+                        PlayerState = PLAYER_STATE.FALLING;
+                    }
+                    break;
+                case PLAYER_STATE.JUMP:
+                    if (IsGrounded) PlayerState = PLAYER_STATE.IDLE;
+
+                    // First handle horizontal movement
+                    if (!IsGrounded)
+                    {
+                        if (IsLeftPressed)
+                        {
+                            Position -= RunVelocity;
+                            offset = -RunVelocity.X;
+                        }
+
+                        if (IsRightPressed)
+                        {
+                            Position += RunVelocity;
+                            offset = RunVelocity.X;
+                        }
+                    }
+
+                    // Next handle vertical movement
+                    floorBelow = getFloorBelow(offset);
+
+                    //IsGrounded = false;
+
+
+
+
+
+
+
+
+
+
+                    // There is no ground below us. We can jump.
+                    if (floorBelow == Vector2.Zero 
+                        || (Bounds.Bottom + gravity - airResist < floorBelow.Y) 
+                        || float.IsNaN(floorBelow.Y)
+                        /*|| IsGrounded*/){
+
+                        Jump();
+                    }
+                    else // There is floor below us, decide what to do.
+                    {
+                        // We were on the floor. Now we're initiating a jump.
+                        if (PrevBoundsBottom == Bounds.Bottom)
+                        {
+                            Jump();
+                        }
+                        if (PrevBoundsBottom < Bounds.Bottom || PrevBoundsBottom > Bounds.Bottom) // We are descending, or we are ascending.........................................
+                        {
+                            if (Bounds.Bottom + gravity <= floorBelow.Y)
+                            {
+                                distToGround = (floorBelow.Y - (Bounds.Bottom + gravity));
+                            }
+                            else if (floorBelow.Y > Bounds.Bottom)
+                            {
+                                distToGround = (floorBelow.Y - (Bounds.Bottom));
+                            }
+                            else if (Bounds.Bottom > floorBelow.Y && Bounds.Top < floorBelow.Y) // Bounds are below the floor
+                            {
+                                distToGround = (floorBelow.Y - Bounds.Bottom);
+                            }
+
+                            if (distToGround == 0)
+                            {
+                                IsGrounded = true;
+                            }
+                            else if (distToGround > 0 && distToGround < (floorBelow.Y - Bounds.Bottom) + jumpVelocity.Y + gravity + airResist/*Bounds.Bottom + distToGround > floorBelow.Y*/)
+                            {
+                                Position += new Vector2(0, (int)distToGround);
+                                if (Bounds.Bottom == floorBelow.Y)
+                                    IsGrounded = true;
+                                else
+                                    IsGrounded = false;
+                            }
+                            else if (distToGround < -1)
+                            {
+                                Position += new Vector2(0, distToGround);
+                                //Position = floorBelow;
+                                IsGrounded = true;
+                            }
+                            else
+                            {
+                                Jump();
+                            }
+
+                            //distToGround = floorBelow.Y - Bounds.Bottom;
+
+                            //if (distToGround == 0)
+                            //{
+                            //    IsGrounded = true;
+                            //}
+                            //else if (Bounds.Bottom - (Bounds.Bottom + (gravity - airResist)) > distToGround && distToGround > 0/*Bounds.Bottom + distToGround > floorBelow.Y*/) // jumpVelocity.Y??
+                            //{
+                            //    Position += new Vector2(0, (int)distToGround);
+                            //    if (Bounds.Bottom == floorBelow.Y)
+                            //        IsGrounded = true;
+                            //    else
+                            //        IsGrounded = false;
+                            //}
+
+                            //if (Bounds.Bottom < floorBelow.Y) // The floor is below us
+                            //{
+                            //    // Continue jump
+                            //}
+                            //else
+                            //{
+                            //    // The floor is above or equal to Bounds.Bottom. We need to land.
+                            //}
+                        }
+                    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                     break;
                 case PLAYER_STATE.FALLING:
                     if (IsGrounded) PlayerState = PLAYER_STATE.IDLE;
-                    if (airResist > gravity)
+
+                    // First handle horizontal movement
+                    if (!IsGrounded)
                     {
-                        //airResist -= 1.0f;
-                        airResist -= 0.6f;
+                        if (IsLeftPressed)
+                        {
+                            Position -= RunVelocity;
+                            offset = -RunVelocity.X;
+                        }
+
+                        if (IsRightPressed)
+                        {
+                            Position += RunVelocity;
+                            offset = RunVelocity.X;
+                        }
+                    }
+
+                    floorBelow = getFloorBelow(offset);//getWalkingDistance();
+
+                    if (airResist > gravity && floorBelow.Y > Bounds.Bottom + gravity - airResist)
+                        airResist -= 0.5f;
+                    else
+                        airResist = 0.0f;
+
+                    // There is no ground below us. We need to fall.
+                    if (floorBelow == Vector2.Zero || (/*(Bounds.Top < floorBelow.Y) && */(Bounds.Bottom + gravity - airResist < floorBelow.Y)) || float.IsNaN(floorBelow.Y))
+                    {
+                        if ((gravity - airResist) < 0)
+                        {
+                            airResist = 0.0f;
+                            Position += new Vector2(0, gravity);
+                        }
+                        else if (0 <= (gravity - airResist))
+                        {
+                            Position += new Vector2(0, gravity - airResist);
+                        }
+                        IsGrounded = false;
+                        currentNode = null;
                     }
                     else
                     {
-                        airResist = 0.0f;
-                    }
-
-                    // Next handle horizontal movement
-                    if (dir < 0) // We're trying to move to the left
-                    {
-                        loLeftTile = Tiles.GetTile(LoLeft);
-                        if (loLeftTile == null)
+                        //float distToGround = -1.0f;
+                        //float distToGround = (floorBelow.Y - Bounds.Bottom);
+                        //int distToGround = (int)(floorBelow.Y - Bounds.Bottom);
+                        //int distToGround = (int)Math.Ceiling(floorBelow.Y - (Bounds.Bottom + gravity));
+                        //int distToGround = (int)Math.Ceiling(floorBelow.Y - Bounds.Bottom);
+                        if (Bounds.Bottom + gravity <= floorBelow.Y)
                         {
-                            Position -= new Vector2(10, 0);
+                            distToGround = (floorBelow.Y - (Bounds.Bottom + gravity));
                         }
-                        else
+                        else if (floorBelow.Y > Bounds.Bottom)
                         {
-                            if (loLeftTile.BlockLeftApproach && Bounds.Bottom - 1 > loLeftTile.GetYIntersection(Bounds.Center.X))
-                            {
-                                int distToWall = loLeftTile.Bounds.Right - Bounds.Left;
-                                if (10 <= distToWall)
-                                    Position = new Vector2(Position.X - 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
-                                else
-                                    Position += new Vector2(distToWall, 0);
-                            }
+                            distToGround = (floorBelow.Y - (Bounds.Bottom));
+                        }
+                        else if (Bounds.Bottom > floorBelow.Y && Bounds.Top < floorBelow.Y) // Bounds are below the floor
+                        {
+                            distToGround = (floorBelow.Y - Bounds.Bottom);
+                        }
+
+                        //distToGround = (int)(floorBelow.Y - Bounds.Bottom);
+                        if (distToGround == 0)
+                        {
+                            IsGrounded = true;
+                        }
+                        else if (distToGround > 0/*Bounds.Bottom + distToGround > floorBelow.Y*/)
+                        {
+                            Position += new Vector2(0, (int)distToGround);
+                            if (Bounds.Bottom == floorBelow.Y)
+                                IsGrounded = true;
                             else
-                            {
-                                Position -= new Vector2(10, 0);
-                            }
+                                IsGrounded = false;
+                        }
+                        else if (distToGround < -1)
+                        {
+                            Position += new Vector2(0, distToGround);
+                            //Position = floorBelow;
+                            IsGrounded = true;
                         }
                     }
-                    else if (0 < dir) // We're trying to move to the right
-                    {
-                        loRightTile = Tiles.GetTile(LoRight);
-
-                        if (loRightTile == null)
-                        {
-                            Position += new Vector2(10, 0);
-                        }
-                        else
-                        {
-                            if (loRightTile.BlockRightApproach && Bounds.Bottom - 1 > loRightTile.GetYIntersection(Bounds.Center.X))
-                            {
-                                int distToWall = loRightTile.Bounds.Left - Bounds.Right;
-                                if (10 <= distToWall)
-                                    Position = new Vector2(Position.X + 10, (groundPos != Vector2.Zero ? groundPos.Y : Position.Y));
-                                else
-                                    Position += new Vector2(distToWall, 0);
-                            }
-                            else
-                            {
-                                Position += new Vector2(10, 0);
-                            }
-                        }
-                    }
-
                     break;
             }
         }
 
-        Vector2 GroundPos()
+        private void Jump()
         {
-            Tile belowTile = null;
-            Tile botMidTile = Tiles.GetTile(BotMid);
-            Tile botLeftTile = Tiles.GetTile(BotLeft);
-            Tile botRightTile = Tiles.GetTile(BotRight);
-
-            if (botMidTile == null && botRightTile != null)
+            if (IsJumpPressed)
             {
-                belowTile = Tiles.GetPreClampedTile(botRightTile.Row + botRightTile.TopDepth, botRightTile.Column);
-                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Right - (Bounds.Right - botRightTile.Bounds.Left)));
+                airResist += 0.25f;
+                jumpVelocity = new Vector2(0, -19.0f + airResist);
+                Position += jumpVelocity;
             }
-
-            if (botMidTile == null && botLeftTile != null)
+            else // Then we need to resolve this jump.
             {
-                belowTile = Tiles.GetPreClampedTile(botLeftTile.Row + botLeftTile.TopDepth, botLeftTile.Column);
-                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Left + (belowTile.EndPoint.X - Bounds.Left)));
+                if (floorBelow.Y > Bounds.Bottom + (gravity/* - airResist*/) && jumpVelocity.Y < gravity)
+                {
+                    airResist += 1.0f;
+                    jumpVelocity = new Vector2(0, -17.0f + airResist);
+                    Position += jumpVelocity;
+                }
+                else
+                {
+                    PlayerState = PLAYER_STATE.FALLING;
+                }
             }
+        }
+        public Vector2 getWalkingDistance(Vector2 offset = new Vector2())
+        {
+            Vector2 yIntersection;
 
-            if (botMidTile != null)
+            foreach (FloorNode node in CurrentRoom.Floor.Nodes.Items)
             {
-                belowTile = Tiles.GetPreClampedTile(botMidTile.Row + botMidTile.TopDepth, botMidTile.Column);
-                return new Vector2(Position.X, belowTile.GetYIntersection(Bounds.Center.X));
+                if (dir < 0)
+                {
+                    if ((node.Position.X <= Position.X && node.RightNeighbor.Position.X >= Position.X) ||
+                        (node.Position.X <= Position.X && node.RightNeighbor.Position == node.Position)){ 
+                        // Are we on the right edge trying to turn around?
+
+                        yIntersection = CONSTANTS.Y_INTERSECTION(node.RightNeighbor.Position, node.Position, Position.X);
+                        if (!IsGrounded && yIntersection.Y > Bounds.Bottom)
+                        {
+                            currentNode = node;
+                            return yIntersection;
+                        }
+                        else if (IsGrounded)
+                        {
+                            currentNode = node;
+                            return CONSTANTS.VECTOR_DISTANCE(Position, node.Position, offset.X);
+                        }
+                    } //Are we on the left edge?
+                    else if (node.LeftNeighbor.Position == node.Position 
+                        && Position.X - offset.X < node.Position.X
+                        && node.Position.X <= Bounds.Right){
+
+                        yIntersection = CONSTANTS.Y_INTERSECTION(node.RightNeighbor.Position, node.Position, Position.X);
+                        if (!IsGrounded && yIntersection.Y > Bounds.Bottom)
+                        {
+                            currentNode = node;
+                            return yIntersection;
+                        }
+                        else if (IsGrounded)
+                        {
+                            currentNode = node;
+                            if (node.LeftNeighbor.Position == node.Position 
+                                && Position.X - offset.X < node.LeftNeighbor.Position.X 
+                                && node.Position.X <= Bounds.Right){
+
+                                Vector2 newDist = 
+                                    CONSTANTS.Y_INTERSECTION(node.Position, new Vector2(
+                                        node.Position.X - offset.X + (Position.X - Bounds.Left), 
+                                        node.Position.Y), Position.X - offset.X);
+                                return newDist;
+                            }
+                            else
+                            {
+                                //currentNode = node;
+                                //return CONSTANTS.VECTOR_DISTANCE(Position, node.Position, offset.X);
+                                return Vector2.Zero;
+                            }
+                        }
+                    }
+                }
+                else if (dir > 0) // Are we moving right?
+                {
+                    if ((node.Position.X >= Position.X && node.LeftNeighbor.Position.X <= Position.X) ||
+                        (node.Position.X >= Position.X && node.LeftNeighbor.Position == node.Position)){
+
+                        // Are we on the left edge and trying to turn around?
+                        yIntersection = CONSTANTS.Y_INTERSECTION(node.LeftNeighbor.Position, node.Position, Position.X);
+                        if (!IsGrounded && yIntersection.Y > Bounds.Bottom)
+                        {
+                            currentNode = node;
+                            return yIntersection;
+                        }
+                        else if (IsGrounded)
+                        {
+                            currentNode = node;
+                            return CONSTANTS.VECTOR_DISTANCE(Position, node.Position, offset.X);
+                        }
+
+                    } // Are we on the right edge?
+                    else if (node.RightNeighbor.Position == node.Position 
+                        && Position.X + offset.X > node.RightNeighbor.Position.X 
+                        && node.Position.X >= Bounds.Left){
+
+                        yIntersection = CONSTANTS.Y_INTERSECTION(node.LeftNeighbor.Position, node.Position, Position.X);
+                        if (!IsGrounded && yIntersection.Y > Bounds.Bottom)
+                        {
+                            currentNode = node;
+                            return yIntersection;
+                        }
+                        else if (IsGrounded)
+                        {
+                            currentNode = node;
+
+                            if (node.RightNeighbor.Position == node.Position 
+                                && Position.X + offset.X > node.Position.X
+                                && node.Position.X >= Bounds.Left){
+                                
+                                //if (node.LeftNeighbor.Position == node.Position && Position.X - offset.X < node.LeftNeighbor.Position.X && node.Position.X <= Bounds.Right)
+                                Vector2 newDist = CONSTANTS.Y_INTERSECTION(node.Position, new Vector2(
+                                    node.Position.X + offset.X + (Bounds.Right - Position.X), 
+                                    node.Position.Y), Position.X + offset.X);
+                                //Vector2 newDist = CONSTANTS.Y_INTERSECTION(node.Position, new Vector2(node.Position.X - offset.X + (Position.X - Bounds.Left), node.Position.Y), Position.X - offset.X);
+                                return newDist;
+                            }
+                            else
+                            {
+                                //currentNode = node;
+                                //return CONSTANTS.VECTOR_DISTANCE(Position, node.Position, offset.X);
+                                return Vector2.Zero;
+                            }
+                        }
+                    }
+                }
             }
             return Vector2.Zero;
+        }
+
+        /// <summary>
+        /// Use this for finding the floor while in the air
+        /// </summary>
+        /// <returns></returns>
+        public Vector2 getFloorBelow(float offset = 0.0f)
+        {
+            Vector2 yIntersection = Vector2.Zero;
+            foreach (FloorNode node in CurrentRoom.Floor.Nodes.Items)
+            {
+                if ((Bounds.Bottom <= node.Position.Y) || (Bounds.Bottom <= node.LeftNeighbor.Position.Y) || (Bounds.Bottom <= node.RightNeighbor.Position.Y))
+                {
+                    if (dir < 0)
+                    {
+                        if ((node.Position.X <= Position.X && node.RightNeighbor.Position.X >= Position.X) ||
+                            (node.Position.X <= Position.X && node.RightNeighbor.Position == node.Position))
+                        {
+
+                            // Are we on the right edge trying to turn around?
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.RightNeighbor.Position, node.Position, Position.X);
+                        } //Are we on the left edge?
+                        else if (node.LeftNeighbor.Position == node.Position
+                            && Position.X - offset < node.LeftNeighbor.Position.X
+                            && node.Position.X <= Bounds.Right)
+                        {
+
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.RightNeighbor.Position, node.Position, Position.X);
+                        }
+
+                        // Are we on the right edge?
+                        if (node.RightNeighbor.Position == node.Position
+                            && Position.X - offset > node.RightNeighbor.Position.X
+                            && node.Position.X >= Bounds.Left)
+                        {
+
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.LeftNeighbor.Position, node.Position, Position.X);
+                        }
+                    }
+                    else if (dir > 0) // Are we moving right?
+                    {
+                        if ((node.Position.X >= Position.X && node.LeftNeighbor.Position.X <= Position.X) ||
+                            (node.Position.X >= Position.X && node.LeftNeighbor.Position == node.Position))
+                        {
+
+                            // Are we on the left edge and trying to turn around?
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.LeftNeighbor.Position, node.Position, Position.X);
+
+                        } // Are we on the right edge?
+                        else if (node.RightNeighbor.Position == node.Position
+                            && Position.X + offset > node.RightNeighbor.Position.X
+                            && node.Position.X >= Bounds.Left)
+                        {
+
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.LeftNeighbor.Position, node.Position, Position.X);
+                        }
+
+                        // Are we on the left edge?
+                        if (node.LeftNeighbor.Position == node.Position
+                            && Position.X + offset < node.LeftNeighbor.Position.X
+                            && node.Position.X <= Bounds.Right)
+                        {
+
+                            currentNode = node;
+                            yIntersection = CONSTANTS.Y_INTERSECTION(node.RightNeighbor.Position, node.Position, Position.X);
+                        }
+                    }
+                }
+            }
+            return yIntersection;
         }
 
         public override void Draw(GameTime gameTime)

@@ -12,6 +12,15 @@ namespace ProjectVK
         public TileMap Tiles { get; set; }
         public ArrayList<Character> Characters { get; set; }
         public Player Player { get; set; }
+
+        public FloorGraph Floor { get; set; }
+        public Room(GraphicsDevice graphicsDevice, string assetsFolder, ArrayList<Texture2D> textures, FloorGraph floor)
+        {
+            Characters = new ArrayList<Character>();
+            Floor = floor;
+            Player = new Player(graphicsDevice, assetsFolder, new Vector2(1000, 400), 14.0f, this);
+            Characters.Add(Player);
+        }
         public Room(GraphicsDevice graphicsDevice, string assetsFolder, ArrayList<Texture2D> textures, Tile[ , ] tileMap)
         {
             Textures = textures;
@@ -97,12 +106,17 @@ namespace ProjectVK
             Tiles.InsertTile(19, 10, 0.5f, 0.0f, Textures.Items[5]);
             Tiles.InsertTile(20, 11, 1.0f, 0.0f, Textures.Items[2]);
 
+
+            Tiles.InsertTile(7, 6, 1.0f, 1.0f, Textures.Items[0]);
+            Tiles.InsertTile(8, 6, 1.0f, 1.0f, Textures.Items[0]);
+
             Player = new Player(graphicsDevice, assetsFolder, new Vector2(500, 400), 14.0f, this);
             Characters.Add(Player);
         }
 
         public void Update(GameTime gameTime)
         {
+            Floor.Update(gameTime);
             Player.Update(gameTime);
         }
 
@@ -118,9 +132,9 @@ namespace ProjectVK
 
         public void DrawObjects(SpriteBatch spriteBatch)
         {
-            //Player.DrawBounds(spriteBatch, Textures.Items[0]);
-
-            Tiles.Draw(spriteBatch);
+            Player.DrawBounds(spriteBatch, CONSTANTS.PIXEL_TEX);
+            //Tiles.Draw(spriteBatch);
+            Floor.Draw(spriteBatch);
         }
     }
 }

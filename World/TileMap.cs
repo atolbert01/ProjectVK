@@ -105,8 +105,8 @@ namespace ProjectVK
 
         public Point GetClampedPoint(int y, int x)
         {
-            int column = MathHelper.Clamp((int)Math.Ceiling(((float)x / Constants.TILE_SIZE) - 1), 0, Map.GetLength(1) - 1);
-            int row = MathHelper.Clamp((int)Math.Ceiling(((float)y / Constants.TILE_SIZE) - 1), 0, Map.GetLength(0) - 1);
+            int column = MathHelper.Clamp((int)Math.Ceiling(((float)x / CONSTANTS.TILE_SIZE) - 1), 0, Map.GetLength(1) - 1);
+            int row = MathHelper.Clamp((int)Math.Ceiling(((float)y / CONSTANTS.TILE_SIZE) - 1), 0, Map.GetLength(0) - 1);
 
             return new Point(column, row);
         }

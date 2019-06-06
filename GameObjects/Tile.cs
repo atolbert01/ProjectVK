@@ -38,10 +38,10 @@ namespace ProjectVK
             Row = row;
             Column = column;
             Sprite = sprite;
-            Position = new Vector2((Column * Constants.TILE_SIZE), (Row * Constants.TILE_SIZE));
-            Bounds = new Rectangle((int)Position.X, (int)Position.Y, Constants.TILE_SIZE, Constants.TILE_SIZE);
-            StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (Constants.TILE_SIZE * startMultiplier));
-            EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (Constants.TILE_SIZE * endMultiplier));
+            Position = new Vector2((Column * CONSTANTS.TILE_SIZE), (Row * CONSTANTS.TILE_SIZE));
+            Bounds = new Rectangle((int)Position.X, (int)Position.Y, CONSTANTS.TILE_SIZE, CONSTANTS.TILE_SIZE);
+            StartPoint = new Vector2(Bounds.Left, Bounds.Bottom - (CONSTANTS.TILE_SIZE * startMultiplier));
+            EndPoint = new Vector2(Bounds.Right, Bounds.Bottom - (CONSTANTS.TILE_SIZE * endMultiplier));
 
             if (StartPoint.Y - EndPoint.Y < 0)
             {
